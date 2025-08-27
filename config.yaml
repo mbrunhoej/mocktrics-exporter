@@ -1,0 +1,25 @@
+
+collect_interval: 10
+disable_units: False
+
+metrics:
+  - name: metric_test
+    documentation: Mock metric for testing
+    unit: km/s
+    labels:
+      test_label: "123"
+      instance: mock_instance
+    value:
+      kind: static
+      value: 100.0
+  - name: metric_test_ramp
+    documentation: Mock metric for testing ramp
+    unit: m
+    labels:
+      test_label: "456"
+      instance: mock_instance_ramp
+    value:
+      kind: ramp
+      increments_per_seconds: 100000
+      limit: 10000000
+      offset: -10000000

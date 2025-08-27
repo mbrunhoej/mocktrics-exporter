@@ -1,0 +1,22 @@
+{
+  "name": "Python 3.13 Dev",
+  "image": "python:3.13",
+  "postCreateCommand": "pip install pre-commit && pip install -r requirements.txt && pip install -r requirements-dev.txt",
+  "customizations": {
+    "vscode": {
+      "settings": {},
+      "extensions": [
+        "redhat.vscode-yaml",
+        "donjayamanne.python-extension-pack",
+        "matangover.mypy",
+        "mikoz.black-py",
+        "ms-azuretools.vscode-containers",
+        "donjayamanne.git-extension-pack",
+      ]
+    }
+  },
+  "mounts": [
+    "source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind,consistency=cached",
+    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+  ]
+}
