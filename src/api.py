@@ -5,7 +5,7 @@ from fastapi.responses import JSONResponse
 import configuration
 import metrics
 
-api = FastAPI(edirect_slashes=False)
+api = FastAPI(redirect_slashes=False)
 
 
 @api.get("/")
