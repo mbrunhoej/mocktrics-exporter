@@ -1,25 +1,45 @@
 
-collect_interval: 10
-disable_units: False
+disable_units: True
 
 metrics:
-  - name: metric_test
+  - name: test_static
     documentation: Mock metric for testing
-    unit: km/s
     labels:
-      test_label: "123"
-      instance: mock_instance
+      type: static
     value:
       kind: static
-      value: 100.0
-  - name: metric_test_ramp
-    documentation: Mock metric for testing ramp
-    unit: m
+      value: 100
+  - name: test_ramp
+    documentation: Mock metric for testing
     labels:
-      test_label: "456"
-      instance: mock_instance_ramp
+      type: ramp
     value:
       kind: ramp
-      increments_per_seconds: 100000
-      limit: 10000000
-      offset: -10000000
+      period: 2m
+      peak: 100
+      invert: true
+  - name: test_square
+    documentation: Mock metric for testing
+    labels:
+      type: square
+    value:
+      kind: square
+      period: 2m
+      magnitude: 100
+      duty_cycle: 25
+  - name: test_sine
+    documentation: Mock metric for testing
+    labels:
+      type: sine
+    value:
+      kind: sine
+      period: 2m
+      amplitude: 100
+  - name: test_gaussian
+    documentation: Mock metric for testing
+    labels:
+      type: gaussian
+    value:
+      kind: gaussian
+      mean: 50
+      sigma: 10

@@ -2,6 +2,8 @@ import asyncio
 import threading
 import time
 import uuid
+import math
+import random
 from abc import ABC, abstractmethod
 
 from prometheus_client import Counter, Gauge, Histogram, Summary
@@ -33,28 +35,82 @@ class RampValue(Value):
 
     kind = "gauge"
 
-    def __init__(self, increments_per_second, limit: int, offset: int):
-        self.increments_per_second = increments_per_second
-        self.limit = limit
+    def __init__(self, period: int, peak: int, offset: int, invert: bool):
+        self.period = period
+        self.peak = peak
         self.offset = offset
-        self._value = 0.0
-        self._time = time.monotonic()
+        self.invert = invert
+        self._start_time = time.monotonic()
 
     def get_value(self) -> float:
-        last = self._time
-        self._start = time.monotonic()
-        delta = self._start - last
-        self._value += delta * self.increments_per_second
+        delta = time.monotonic() - self._start_time
+        progress = (delta % self.period) / self.period
+        value = progress * self.peak
+        if self.invert:
+            value = self.peak - value
 
-        if self._value > self.limit:
-            self._value = self._value - self.limit
-
-        return self._value + self.offset
+        return value + self.offset
 
 
+class SquareValue(Value):
+
+    kind = "gauge"
+
+    def __init__(
+        self, period: int, magnitude: int, offset: int, duty_cycle: int, invert: bool
+    ):
+        self.period = period
+        self.magnitude = magnitude
+        self.offset = offset
+        self.invert = invert
+        self.duty_cycle = duty_cycle / 100
+        self._start_time = time.monotonic()
+
+    def get_value(self) -> float:
+        delta = time.monotonic() - self._start_time
+        progress = (delta % self.period) / self.period
+
+        if not self.invert:
+            value = self.magnitude if progress < self.duty_cycle else 0
+        else:
+            value = 0 if progress < self.duty_cycle else self.magnitude
+
+        return value + self.offset
+
+
+class SineValue(Value):
+
+    kind = "gauge"
+
+    def __init__(self, period: int, amplitude: int, offset: int):
+        self.period = period
+        self.amplitude = amplitude
+        self.offset = offset
+        self._start_time = time.monotonic()
+
+    def get_value(self) -> float:
+        delta = time.monotonic() - self._start_time
+        progress = (delta % self.period) / self.period
+
+        value = math.sin(progress * math.pi * 2) * self.amplitude
+
+        return value + self.offset
+
+
+class GaussianValue(Value):
+
+    kind = "gauge"
+
+    def __init__(self, mean: int, sigma: float):
+        self.mean = mean
+        self.sigma = sigma
+
+    def get_value(self) -> float:
+        return random.gauss(self.mean, self.sigma)
+    
 class Metric:
 
-    base_name = "mock"
+    base_name = "mocktrick"
 
     def __init__(
         self,
@@ -166,9 +222,27 @@ for metric in configuration.configuration.metrics:
             value = StaticValue(metric.value.value)
         case "ramp":
             value = RampValue(
-                metric.value.increments_per_seconds,
-                metric.value.limit,
+                metric.value.period,
+                metric.value.peak,
                 metric.value.offset,
+                metric.value.invert,
+            )
+        case "square":
+            value = SquareValue(
+                metric.value.period,
+                metric.value.magnitude,
+                metric.value.offset,
+                metric.value.duty_cycle,
+                metric.value.invert,
+            )
+        case "sine":
+            value = SineValue(
+                metric.value.period, metric.value.amplitude, metric.value.offset
+            )
+        case "gaussian":
+            value = GaussianValue(
+                metric.value.mean,
+                metric.value.sigma
             )
 
     metrics.add_metric(

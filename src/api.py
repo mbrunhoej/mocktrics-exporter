@@ -38,7 +38,6 @@ async def post_metric(metric: configuration.Metric) -> JSONResponse:
             status_code=409, content={"success": False, "error": str(e)}
         )
     except Exception as e:
-        print(type(e))
         return JSONResponse(
             status_code=500, content={"success": False, "error": str(e)}
         )
@@ -46,12 +45,10 @@ async def post_metric(metric: configuration.Metric) -> JSONResponse:
 
 @api.delete("/metric")
 async def delete_metric(id: str) -> JSONResponse:
-
     try:
         metrics.metrics.delete_metric(id)
         return JSONResponse(status_code=200, content={"success": True})
     except Exception as e:
-        print(type(e))
         return JSONResponse(
             status_code=500, content={"success": False, "error": str(e)}
         )
