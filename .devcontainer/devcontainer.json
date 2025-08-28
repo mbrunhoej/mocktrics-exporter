@@ -2,6 +2,7 @@
   "name": "Python 3.13 Dev",
   "image": "python:3.13",
   "postCreateCommand": "pip install pre-commit && pip install -r requirements.txt && pip install -r requirements-dev.txt",
+  "forwardPorts": [8000, 8080, 9090],
   "customizations": {
     "vscode": {
       "settings": {},
