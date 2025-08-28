@@ -1,0 +1,13 @@
+groups:
+  - name: mocktricks-rules
+    interval: 30s   # how often to evaluate these rules
+    rules:
+
+      - alert: PulseHigh
+        expr: mocktrick_square > 0
+        for: 0s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Square is high"
+          description: "Very high!"

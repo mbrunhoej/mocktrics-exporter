@@ -107,10 +107,9 @@ class GaussianValue(Value):
 
     def get_value(self) -> float:
         return random.gauss(self.mean, self.sigma)
-    
-class Metric:
 
-    base_name = "mocktrick"
+
+class Metric:
 
     def __init__(
         self,
@@ -121,7 +120,7 @@ class Metric:
         unit: str = "",
         read_only: bool = False,
     ) -> None:
-        self.name = f"{self.base_name}_{name}"
+        self.name = name
         self.documentation = documentation
         self.labels = labels
         self.unit = unit
@@ -163,6 +162,34 @@ class Metric:
     class MetricCreationException(Exception):
         pass
 
+    @staticmethod
+    def create_value(value) -> Value:
+
+        match value.kind:
+            case "static":
+                v = StaticValue(value.value)
+            case "ramp":
+                v = RampValue(
+                    value.period,
+                    value.peak,
+                    value.offset,
+                    value.invert,
+                )
+            case "square":
+                v = SquareValue(
+                    value.period,
+                    value.magnitude,
+                    value.offset,
+                    value.duty_cycle,
+                    value.invert,
+                )
+            case "sine":
+                v = SineValue(value.period, value.amplitude, value.offset)
+            case "gaussian":
+                v = GaussianValue(value.mean, value.sigma)
+
+        return v
+
 
 class _Metrics:
 
@@ -171,9 +198,14 @@ class _Metrics:
         self._run = False
 
     def add_metric(self, metric: Metric, read_only: bool = False) -> str:
-        id = str(uuid.uuid4())
+        id = metric.name
         self._metrics.update({id: metric})
         return id
+
+    def get_metric(self, name: str) -> Metric:
+        print(name)
+        print(self._metrics)
+        return self._metrics[name]
 
     def delete_metric(self, id: str) -> None:
         metric = self._metrics[id]
@@ -217,33 +249,7 @@ metrics = _Metrics()
 
 for metric in configuration.configuration.metrics:
 
-    match metric.value.kind:
-        case "static":
-            value = StaticValue(metric.value.value)
-        case "ramp":
-            value = RampValue(
-                metric.value.period,
-                metric.value.peak,
-                metric.value.offset,
-                metric.value.invert,
-            )
-        case "square":
-            value = SquareValue(
-                metric.value.period,
-                metric.value.magnitude,
-                metric.value.offset,
-                metric.value.duty_cycle,
-                metric.value.invert,
-            )
-        case "sine":
-            value = SineValue(
-                metric.value.period, metric.value.amplitude, metric.value.offset
-            )
-        case "gaussian":
-            value = GaussianValue(
-                metric.value.mean,
-                metric.value.sigma
-            )
+    value = Metric.create_value(metric.value)
 
     metrics.add_metric(
         Metric(

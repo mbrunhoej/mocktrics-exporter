@@ -2,14 +2,14 @@
 disable_units: True
 
 metrics:
-  - name: test_static
+  - name: static
     documentation: Mock metric for testing
     labels:
       type: static
     value:
       kind: static
       value: 100
-  - name: test_ramp
+  - name: ramp
     documentation: Mock metric for testing
     labels:
       type: ramp
@@ -18,16 +18,16 @@ metrics:
       period: 2m
       peak: 100
       invert: true
-  - name: test_square
+  - name: square
     documentation: Mock metric for testing
     labels:
       type: square
     value:
       kind: square
-      period: 2m
+      period: 4m
       magnitude: 100
-      duty_cycle: 25
-  - name: test_sine
+      duty_cycle: 50
+  - name: sine
     documentation: Mock metric for testing
     labels:
       type: sine
@@ -35,7 +35,7 @@ metrics:
       kind: sine
       period: 2m
       amplitude: 100
-  - name: test_gaussian
+  - name: gaussian
     documentation: Mock metric for testing
     labels:
       type: gaussian
