@@ -63,7 +63,20 @@ async def post_metric(metric: configuration.Metric) -> JSONResponse:
         return JSONResponse(
             status_code=500, content={"success": False, "error": str(e)}
         )
+        
+@api.get("/metric/all")
+def get_metric_all() -> JSONResponse:
+   return JSONResponse(
+       content = {
+           key: value.to_dict() for key, value in metrics.metrics.get_metrics().items()
+        }
+   )
 
+@api.get("/metric/{name}")
+def get_metric_by_id(name: str) -> JSONResponse:
+    return JSONResponse(
+        content=metrics.metrics.get_metric(name).to_dict()
+    )
 
 @api.delete("/metric")
 async def delete_metric(id: str) -> JSONResponse:

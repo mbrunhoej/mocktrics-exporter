@@ -29,6 +29,11 @@ class StaticValue(Value):
 
     def get_value(self) -> float:
         return self.value
+    
+    def to_dict(self) -> dict [str, any]:
+        return {
+            "kind": "static"
+        }
 
 
 class RampValue(Value):
@@ -50,6 +55,14 @@ class RampValue(Value):
             value = self.peak - value
 
         return value + self.offset
+    
+    def to_dict(self) -> dict [str, any]:
+        return {
+            "kind": "ramp",
+            "peak": self.peak,
+            "offset": self.offset,
+            "invert": self.invert
+        }
 
 
 class SquareValue(Value):
@@ -76,7 +89,15 @@ class SquareValue(Value):
             value = 0 if progress < self.duty_cycle else self.magnitude
 
         return value + self.offset
-
+    
+    def to_dict(self) -> dict [str, any]:
+        return {
+            "kind": "square",
+            "magnitude": self.magnitude,
+            "offset": self.offset,
+            "duty_cycle": self.duty_cycle,
+            "invert": self.invert
+        }
 
 class SineValue(Value):
 
@@ -95,6 +116,13 @@ class SineValue(Value):
         value = math.sin(progress * math.pi * 2) * self.amplitude
 
         return value + self.offset
+    
+    def to_dict(self) -> dict [str, any]:
+        return {
+            "kind": "sine",
+            "amplitude": self.amplitude,
+            "offset": self.offset,
+        }
 
 
 class GaussianValue(Value):
@@ -107,6 +135,13 @@ class GaussianValue(Value):
 
     def get_value(self) -> float:
         return random.gauss(self.mean, self.sigma)
+    
+    def to_dict(self) -> dict [str, any]:
+        return {
+            "kind": "gaussian",
+            "mean": self.mean,
+            "sigma": self.sigma
+        }
 
 
 class Metric:
@@ -158,6 +193,10 @@ class Metric:
         self._metric.labels(*[value for value in self.labels.values()]).set(
             self.value.get_value()
         )
+        
+    @property
+    def read_only(self) -> bool:
+        return self._read_only
 
     class MetricCreationException(Exception):
         pass
@@ -190,6 +229,15 @@ class Metric:
 
         return v
 
+    def to_dict(self):
+        return {
+            "name": self.name,
+            "documentation": self.documentation,
+            "unit": self.unit,
+            "labels": self.labels,
+            "read_only": self.read_only,
+            "value": self.value.to_dict()
+        }
 
 class _Metrics:
 
@@ -201,14 +249,17 @@ class _Metrics:
         id = metric.name
         self._metrics.update({id: metric})
         return id
+    
+    def get_metrics(self) -> dict[str, Metric]:
+        return self._metrics
 
     def get_metric(self, name: str) -> Metric:
-        print(name)
-        print(self._metrics)
         return self._metrics[name]
 
     def delete_metric(self, id: str) -> None:
         metric = self._metrics[id]
+        if metric.read_only:
+            raise AttributeError
         metric._metric.remove(metric.labels.keys())
         self._metrics.pop(id)
 
