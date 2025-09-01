@@ -1,2 +1,5 @@
 black
 mypy
+pytest
+requests
+httpx

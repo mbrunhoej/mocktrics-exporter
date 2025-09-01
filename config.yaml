@@ -2,44 +2,86 @@
 disable_units: True
 
 metrics:
+  - name: combined
+    documentation: Mock metric for all types
+    labels:
+      - type
+    values:
+      - kind: static
+        value: 100
+        labels:
+          - static
+      - kind: ramp
+        period: 2m
+        peak: 100
+        invert: false
+        labels:
+          - ramp
+      - kind: square
+        period: 2m
+        magnitude: 100
+        duty_cycle: 50
+        labels:
+          - square
+      - kind: sine
+        period: 2m
+        amplitude: 50
+        offset: 50
+        labels:
+          - sine
+      - kind: gaussian
+        mean: 50
+        sigma: 10
+        labels: 
+          - gaussian
   - name: static
     documentation: Mock metric for testing
     labels:
-      type: static
-    value:
-      kind: static
-      value: 100
+      - type
+    values:
+      - kind: static
+        value: 100
+        labels:
+          - static
   - name: ramp
     documentation: Mock metric for testing
     labels:
-      type: ramp
-    value:
-      kind: ramp
-      period: 2m
-      peak: 100
-      invert: true
+      - type
+    values:
+      - kind: ramp
+        period: 2m
+        peak: 100
+        invert: true
+        labels:
+          - ramp
   - name: square
     documentation: Mock metric for testing
     labels:
-      type: square
-    value:
-      kind: square
-      period: 4m
-      magnitude: 100
-      duty_cycle: 50
+       - type
+    values:
+      - kind: square
+        period: 4m
+        magnitude: 100
+        duty_cycle: 50
+        labels:
+          - square
   - name: sine
     documentation: Mock metric for testing
     labels:
-      type: sine
-    value:
-      kind: sine
-      period: 2m
-      amplitude: 100
+      - type
+    values:
+      - kind: sine
+        period: 2m
+        amplitude: 100
+        labels:
+          - sine
   - name: gaussian
     documentation: Mock metric for testing
     labels:
-      type: gaussian
-    value:
-      kind: gaussian
-      mean: 50
-      sigma: 10
+      - type
+    values:
+      - kind: gaussian
+        mean: 50
+        sigma: 10
+        labels: 
+          - gaussian

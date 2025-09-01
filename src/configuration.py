@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Annotated, Union, Literal
 
 import pydantic
 import yaml
@@ -30,6 +30,7 @@ def parse_size(size: str | int):
 class StaticValue(pydantic.BaseModel):
     kind: Literal["static"]
     value: float
+    labels: list[str]
 
     @pydantic.field_validator("value", mode="before")
     def convert_value(cls, v):
@@ -42,6 +43,7 @@ class RampValue(pydantic.BaseModel):
     peak: int
     offset: int = 0
     invert: bool = False
+    labels: list[str]
 
     @pydantic.field_validator("period", mode="before")
     def convert_period(cls, v):
@@ -63,6 +65,7 @@ class SquareValue(pydantic.BaseModel):
     offset: int = 0
     duty_cycle: int
     invert: bool = False
+    labels: list[str]
 
     @pydantic.field_validator("period", mode="before")
     def convert_period(cls, v):
@@ -88,6 +91,7 @@ class SineValue(pydantic.BaseModel):
     period: int
     amplitude: int
     offset: int = 0
+    labels: list[str]
 
     @pydantic.field_validator("period", mode="before")
     def convert_period(cls, v):
@@ -106,14 +110,21 @@ class GaussianValue(pydantic.BaseModel):
     kind: Literal["gaussian"]
     mean: int
     sigma: float
+    labels: list[str]
+
+
+MetricValue = Annotated[
+    Union[RampValue, SineValue, SquareValue, StaticValue, GaussianValue],
+    pydantic.Field(discriminator="kind"),
+]
 
 
 class Metric(pydantic.BaseModel):
     name: str
     documentation: str
     unit: str = ""
-    labels: dict[str, str] = {}
-    value: StaticValue | RampValue | SquareValue | SineValue | GaussianValue
+    labels: list[str] = []
+    values: list[StaticValue | RampValue | SquareValue | SineValue | GaussianValue]
 
 
 class Configuration(pydantic.BaseModel):
