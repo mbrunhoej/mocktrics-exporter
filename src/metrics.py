@@ -1,9 +1,9 @@
 import asyncio
+import math
+import random
 import threading
 import time
 import uuid
-import math
-import random
 from abc import ABC, abstractmethod
 
 from prometheus_client import Counter, Gauge, Histogram, Summary

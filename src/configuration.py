@@ -1,8 +1,8 @@
-from typing import Annotated, Union, Literal
+import re
+from typing import Annotated, Literal, Union
 
 import pydantic
 import yaml
-import re
 
 
 def parse_duration(duration: str | int):

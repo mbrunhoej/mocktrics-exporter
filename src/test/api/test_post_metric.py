@@ -1,13 +1,15 @@
-import pytest
-from main import main
+import asyncio
 import multiprocessing
 import time
+
+import pytest
 import requests
-import asyncio
 from fastapi.testclient import TestClient
+from prometheus_client import REGISTRY, CollectorRegistry, core
+
 import api
 import metrics
-from prometheus_client import REGISTRY, CollectorRegistry
+from main import main
 
 
 @pytest.fixture(scope="function", autouse=True)
@@ -26,7 +28,6 @@ def cleanup():
 
     for name in delete:
         metrics.metrics.delete_metric(name)
-    from prometheus_client import core
 
     core.REGISTRY = CollectorRegistry()
 
