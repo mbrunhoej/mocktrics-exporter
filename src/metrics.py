@@ -194,8 +194,17 @@ class Metric:
     def set_value(self) -> None:
 
         for value in self.values:
-
             self._metric.labels(*value.get_labels()).set(value.get_value())
+
+    def add_value(self, value: Value) -> None:
+        if len(self.labels) != len(value.get_labels()):
+            raise AttributeError("Mismatching label count")
+
+        for val in self.values:
+            if all(label in value.get_labels() for label in val.get_labels()):
+                raise IndexError("Duplicate labels")
+
+        self.values.append(value)
 
     @property
     def read_only(self) -> bool:
@@ -231,7 +240,6 @@ class Metric:
                 v = SineValue(value.labels, value.period, value.amplitude, value.offset)
             case "gaussian":
                 v = GaussianValue(value.labels, value.mean, value.sigma)
-
         return v
 
     def to_dict(self):

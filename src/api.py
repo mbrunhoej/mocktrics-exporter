@@ -56,8 +56,35 @@ async def post_metric(metric: configuration.Metric) -> JSONResponse:
 
 @api.post("/metric/{id}/value")
 def post_metric_value(id: str, value: configuration.MetricValue) -> JSONResponse:
-    metric = metrics.metrics.get_metric(id)
-    metric.create_value(value)
+    
+    try:
+        metric = metrics.metrics.get_metric(id)
+        metric.add_value(metric.create_value(value))
+    except AttributeError:
+        return JSONResponse(
+            status_code=419,
+            content={
+                "success": False,
+                "error": f"Value label count does not match metric label count",
+            },
+        )
+    except IndexError:
+        return JSONResponse(
+            status_code=409,
+            content={
+                "success": False,
+                "error": f"Labelset already exists",
+            },
+        )
+    except KeyError:
+        return JSONResponse(
+            status_code=404,
+            content={
+                "success": False,
+                "error": f"Requested metric does not exist",
+            },
+        )
+        
     return JSONResponse(
         status_code=201,
         content={"success": True, "name": id, "action": "created"},

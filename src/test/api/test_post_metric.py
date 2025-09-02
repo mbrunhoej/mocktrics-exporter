@@ -1,15 +1,9 @@
-import asyncio
-import multiprocessing
-import time
-
 import pytest
-import requests
 from fastapi.testclient import TestClient
 from prometheus_client import REGISTRY, CollectorRegistry, core
 
 import api
 import metrics
-from main import main
 
 
 @pytest.fixture(scope="function", autouse=True)
@@ -151,13 +145,13 @@ def test_metric_unprocessable_value(client: TestClient):
             "accept": "application/json",
         },
         json={
-            "name": "test_metric_duplicate_value",
+            "name": "test_metric_single_value",
             "documentation": "documentation for test metric",
             "unit": "",
-            "labels": ["type"],
+            "labels": {},
             "values": [],
         },
     )
 
-    assert response.status_code == 500
+    assert response.status_code == 422
     assert len(metrics.metrics.get_metrics()) == metric_count
