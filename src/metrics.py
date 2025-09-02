@@ -1,168 +1,10 @@
-import math
-import random
 import threading
 import time
-import typing
-from abc import ABC, abstractmethod
 
 from prometheus_client import Gauge
 
 import configuration
-
-
-class Value(ABC):
-
-    def get_labels(self) -> list[str]:
-        self._labels: list[str] = []
-        return self._labels
-
-    @abstractmethod
-    def get_value(self) -> float:
-        pass
-
-    @abstractmethod
-    def to_dict(self) -> dict[str, typing.Any]:
-        pass
-
-
-class StaticValue(Value):
-
-    kind = "gauge"
-
-    def __init__(self, labels: list[str], value: float):
-        self._labels = labels
-        self.value = value
-
-    def get_value(self) -> float:
-        return self.value
-
-    def to_dict(self) -> dict[str, typing.Any]:
-        return {"labels": self._labels, "kind": "static"}
-
-
-class RampValue(Value):
-
-    kind = "gauge"
-
-    def __init__(
-        self, labels: list[str], period: int, peak: int, offset: int, invert: bool
-    ):
-        self._labels = labels
-        self.period = period
-        self.peak = peak
-        self.offset = offset
-        self.invert = invert
-        self._start_time = time.monotonic()
-
-    def get_value(self) -> float:
-        delta = time.monotonic() - self._start_time
-        progress = (delta % self.period) / self.period
-        value = progress * self.peak
-        if self.invert:
-            value = self.peak - value
-
-        return value + self.offset
-
-    def to_dict(self) -> dict[str, typing.Any]:
-        return {
-            "labels": self._labels,
-            "kind": "ramp",
-            "peak": self.peak,
-            "offset": self.offset,
-            "invert": self.invert,
-        }
-
-
-class SquareValue(Value):
-
-    kind = "gauge"
-
-    def __init__(
-        self,
-        labels: list[str],
-        period: int,
-        magnitude: int,
-        offset: int,
-        duty_cycle: int,
-        invert: bool,
-    ):
-        self._labels = labels
-        self.period = period
-        self.magnitude = magnitude
-        self.offset = offset
-        self.invert = invert
-        self.duty_cycle = duty_cycle / 100
-        self._start_time = time.monotonic()
-
-    def get_value(self) -> float:
-        delta = time.monotonic() - self._start_time
-        progress = (delta % self.period) / self.period
-
-        if not self.invert:
-            value = self.magnitude if progress < self.duty_cycle else 0
-        else:
-            value = 0 if progress < self.duty_cycle else self.magnitude
-
-        return value + self.offset
-
-    def to_dict(self) -> dict[str, typing.Any]:
-        return {
-            "labels": self._labels,
-            "kind": "square",
-            "magnitude": self.magnitude,
-            "offset": self.offset,
-            "duty_cycle": self.duty_cycle,
-            "invert": self.invert,
-        }
-
-
-class SineValue(Value):
-
-    kind = "gauge"
-
-    def __init__(self, labels: list[str], period: int, amplitude: int, offset: int):
-        self._labels = labels
-        self.period = period
-        self.amplitude = amplitude
-        self.offset = offset
-        self._start_time = time.monotonic()
-
-    def get_value(self) -> float:
-        delta = time.monotonic() - self._start_time
-        progress = (delta % self.period) / self.period
-
-        value = math.sin(progress * math.pi * 2) * self.amplitude
-
-        return value + self.offset
-
-    def to_dict(self) -> dict[str, typing.Any]:
-        return {
-            "labels": self._labels,
-            "kind": "sine",
-            "amplitude": self.amplitude,
-            "offset": self.offset,
-        }
-
-
-class GaussianValue(Value):
-
-    kind = "gauge"
-
-    def __init__(self, labels: list[str], mean: int, sigma: float):
-        self._labels = labels
-        self.mean = mean
-        self.sigma = sigma
-
-    def get_value(self) -> float:
-        return random.gauss(self.mean, self.sigma)
-
-    def to_dict(self) -> dict[str, typing.Any]:
-        return {
-            "labels": self._labels,
-            "kind": "gaussian",
-            "mean": self.mean,
-            "sigma": self.sigma,
-        }
+import valueModels
 
 
 class Metric:
@@ -170,7 +12,7 @@ class Metric:
     def __init__(
         self,
         name: str,
-        values: list[Value],
+        values: list[valueModels.MetricValue],
         documentation: str = "",
         labels: list[str] = [],
         unit: str = "",
@@ -194,14 +36,14 @@ class Metric:
     def set_value(self) -> None:
 
         for value in self.values:
-            self._metric.labels(*value.get_labels()).set(value.get_value())
+            self._metric.labels(*value.labels).set(value.get_value())
 
-    def add_value(self, value: Value) -> None:
-        if len(self.labels) != len(value.get_labels()):
+    def add_value(self, value: valueModels.MetricValue) -> None:
+        if len(self.labels) != len(value.labels):
             raise AttributeError("Mismatching label count")
 
         for val in self.values:
-            if all(label in value.get_labels() for label in val.get_labels()):
+            if all(label in value.labels for label in val.labels):
                 raise IndexError("Duplicate labels")
 
         self.values.append(value)
@@ -213,37 +55,6 @@ class Metric:
     class MetricCreationException(Exception):
         pass
 
-    @staticmethod
-    def create_value(value: configuration.MetricValue) -> Value:
-
-        match value.kind:
-            case "static":
-                return StaticValue(value.labels, value.value)
-            case "ramp":
-                return RampValue(
-                    value.labels,
-                    value.period,
-                    value.peak,
-                    value.offset,
-                    value.invert,
-                )
-            case "square":
-                return SquareValue(
-                    value.labels,
-                    value.period,
-                    value.magnitude,
-                    value.offset,
-                    value.duty_cycle,
-                    value.invert,
-                )
-            case "sine":
-                return SineValue(
-                    value.labels, value.period, value.amplitude, value.offset
-                )
-            case "gaussian":
-                return GaussianValue(value.labels, value.mean, value.sigma)
-        raise ValueError("Unable to create value from kind")
-
     def to_dict(self):
         return {
             "name": self.name,
@@ -251,7 +62,7 @@ class Metric:
             "unit": self.unit,
             "labels": self.labels,
             "read_only": self.read_only,
-            "values": [value.to_dict() for value in self.values],
+            "values": [value.model_dump() for value in self.values],
         }
 
 
@@ -315,12 +126,10 @@ metrics = _Metrics()
 
 for metric in configuration.configuration.metrics:
 
-    values = [Metric.create_value(value) for value in metric.values]
-
     metrics.add_metric(
         Metric(
             metric.name,
-            values,
+            metric.values,
             metric.documentation,
             metric.labels,
             metric.unit,

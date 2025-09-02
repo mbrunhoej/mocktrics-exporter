@@ -4,6 +4,7 @@ from prometheus_client import CollectorRegistry, core
 
 import api
 import metrics
+import valueModels
 
 
 @pytest.fixture(scope="function", autouse=True)
@@ -32,7 +33,11 @@ def test_metric_delete_value(client: TestClient):
         name="test_metric_delete_value",
         labels=["type"],
         documentation="documentation for test metric",
-        values=[metrics.StaticValue(["static"], 0.0)],
+        values=[
+            valueModels.StaticValue.model_validate(
+                {"kind": "static", "value": 0, "labels": ["static"]}
+            )
+        ],
     )
 
     metrics.metrics.add_metric(metric)
@@ -57,7 +62,11 @@ def test_mismatching_labels_length(client: TestClient):
         name="test_mismatching_labels_length",
         labels=["type"],
         documentation="documentation for test metric",
-        values=[metrics.StaticValue(["static"], 0.0)],
+        values=[
+            valueModels.StaticValue.model_validate(
+                {"kind": "static", "value": 0, "labels": ["static"]}
+            )
+        ],
     )
 
     metrics.metrics.add_metric(metric)
@@ -82,7 +91,11 @@ def test_delete_mismatching_labels(client: TestClient):
         name="test_delete_mismatching_labels",
         labels=["type"],
         documentation="documentation for test metric",
-        values=[metrics.StaticValue(["static"], 0.0)],
+        values=[
+            valueModels.StaticValue.model_validate(
+                {"kind": "static", "value": 0, "labels": ["static"]}
+            )
+        ],
     )
 
     metrics.metrics.add_metric(metric)

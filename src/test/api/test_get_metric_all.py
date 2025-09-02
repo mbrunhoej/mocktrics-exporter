@@ -4,6 +4,7 @@ from prometheus_client import CollectorRegistry, core
 
 import api
 import metrics
+import valueModels
 
 
 @pytest.fixture(scope="function", autouse=True)
@@ -44,8 +45,8 @@ def test_get_value_all(client: TestClient):
         labels=["type"],
         documentation="documentation for test metric",
         values=[
-            metrics.RampValue(
-                labels=["ramp"], period=120, peak=100, offset=0, invert=False
+            valueModels.RampValue.model_validate(
+                {"kind": "ramp", "labels": ["ramp"], "period": "2m", "peak": 100}
             )
         ],
     )

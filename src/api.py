@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 
 import configuration
 import metrics
+import valueModels
 
 api = FastAPI(redirect_slashes=False)
 
@@ -21,7 +22,7 @@ async def post_metric(metric: configuration.Metric) -> JSONResponse:
 
         values = []
         for value in metric.values:
-            values.append(metrics.Metric.create_value(value))
+            values.append(value)
 
         try:
             metrics.metrics.get_metric(metric.name)
@@ -55,17 +56,17 @@ async def post_metric(metric: configuration.Metric) -> JSONResponse:
 
 
 @api.post("/metric/{id}/value")
-def post_metric_value(id: str, value: configuration.MetricValue) -> JSONResponse:
+def post_metric_value(id: str, value: valueModels.MetricValue) -> JSONResponse:
 
     try:
         metric = metrics.metrics.get_metric(id)
-        metric.add_value(metric.create_value(value))
+        metric.add_value(value)
     except AttributeError:
         return JSONResponse(
             status_code=419,
             content={
                 "success": False,
-                "error": f"Value label count does not match metric label count",
+                "error": "Value label count does not match metric label count",
             },
         )
     except IndexError:
@@ -73,7 +74,7 @@ def post_metric_value(id: str, value: configuration.MetricValue) -> JSONResponse
             status_code=409,
             content={
                 "success": False,
-                "error": f"Labelset already exists",
+                "error": "Labelset already exists",
             },
         )
     except KeyError:
@@ -81,7 +82,7 @@ def post_metric_value(id: str, value: configuration.MetricValue) -> JSONResponse
             status_code=404,
             content={
                 "success": False,
-                "error": f"Requested metric does not exist",
+                "error": "Requested metric does not exist",
             },
         )
 
@@ -109,7 +110,7 @@ def get_metric_by_id(name: str) -> JSONResponse:
             status_code=404,
             content={
                 "success": False,
-                "error": f"Requested metric does not exist",
+                "error": "Requested metric does not exist",
             },
         )
     return JSONResponse(content=metric.to_dict())
@@ -125,7 +126,7 @@ async def delete_metric(id: str) -> JSONResponse:
             status_code=404,
             content={
                 "success": False,
-                "error": f"Requested metric does not exist",
+                "error": "Requested metric does not exist",
             },
         )
     except Exception as e:
@@ -143,7 +144,7 @@ def delete_metric_value(id: str, labels: list[str] = Query(...)) -> JSONResponse
             status_code=404,
             content={
                 "success": False,
-                "error": f"Requested metric does not exist",
+                "error": "Requested metric does not exist",
             },
         )
     if len(labels) != len(metric.labels):
@@ -151,11 +152,11 @@ def delete_metric_value(id: str, labels: list[str] = Query(...)) -> JSONResponse
             status_code=419,
             content={
                 "success": False,
-                "error": f"Value label count does not match metric label count",
+                "error": "Value label count does not match metric label count",
             },
         )
     for value in metric.values:
-        if all([label in value.get_labels() for label in labels]):
+        if all([label in value.labels for label in labels]):
             metric.values.remove(value)
             break
     else:
@@ -163,7 +164,7 @@ def delete_metric_value(id: str, labels: list[str] = Query(...)) -> JSONResponse
             status_code=404,
             content={
                 "success": False,
-                "error": f"Label set found not be found for metric",
+                "error": "Label set found not be found for metric",
             },
         )
     return JSONResponse(
