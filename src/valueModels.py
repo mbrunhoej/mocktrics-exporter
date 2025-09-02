@@ -78,7 +78,7 @@ class SquareValue(pydantic.BaseModel):
     period: int
     magnitude: int
     offset: int = 0
-    duty_cycle: int
+    duty_cycle: float
     invert: bool = False
     labels: list[str]
     __start_time: float = time.monotonic()
@@ -99,12 +99,11 @@ class SquareValue(pydantic.BaseModel):
     def validate_duty_cycle(cls, v):
         if v < 0 or v > 100:
             raise Exception("Duty cycle must be between 0 and 100")
-        return v
+        return float(v) / 100
 
     def get_value(self) -> float:
         delta = time.monotonic() - self.__start_time
         progress = (delta % self.period) / self.period
-
         if not self.invert:
             value = self.magnitude if progress < self.duty_cycle else 0
         else:
