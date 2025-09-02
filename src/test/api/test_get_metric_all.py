@@ -1,10 +1,9 @@
 import pytest
 from fastapi.testclient import TestClient
-from prometheus_client import REGISTRY, CollectorRegistry, core
+from prometheus_client import CollectorRegistry, core
 
 import api
 import metrics
-import configuration
 
 
 @pytest.fixture(scope="function", autouse=True)

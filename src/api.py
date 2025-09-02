@@ -1,10 +1,8 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from fastapi.responses import JSONResponse
 
 import configuration
 import metrics
-
-from fastapi import Query
 
 api = FastAPI(redirect_slashes=False)
 
@@ -26,7 +24,7 @@ async def post_metric(metric: configuration.Metric) -> JSONResponse:
             values.append(metrics.Metric.create_value(value))
 
         try:
-            m = metrics.metrics.get_metric(metric.name)
+            metrics.metrics.get_metric(metric.name)
             return JSONResponse(
                 status_code=409,
                 content={"success": False, "error": "Metric already exists"},

@@ -1,12 +1,11 @@
-import asyncio
 import math
 import random
 import threading
 import time
-import uuid
+import typing
 from abc import ABC, abstractmethod
 
-from prometheus_client import Counter, Gauge, Histogram, Summary
+from prometheus_client import Gauge
 
 import configuration
 
@@ -14,6 +13,7 @@ import configuration
 class Value(ABC):
 
     def get_labels(self) -> list[str]:
+        self._labels: list[str] = []
         return self._labels
 
     @abstractmethod
@@ -21,7 +21,7 @@ class Value(ABC):
         pass
 
     @abstractmethod
-    def to_dict(self) -> dict[str, any]:
+    def to_dict(self) -> dict[str, typing.Any]:
         pass
 
 
@@ -36,7 +36,7 @@ class StaticValue(Value):
     def get_value(self) -> float:
         return self.value
 
-    def to_dict(self) -> dict[str, any]:
+    def to_dict(self) -> dict[str, typing.Any]:
         return {"labels": self._labels, "kind": "static"}
 
 
@@ -63,7 +63,7 @@ class RampValue(Value):
 
         return value + self.offset
 
-    def to_dict(self) -> dict[str, any]:
+    def to_dict(self) -> dict[str, typing.Any]:
         return {
             "labels": self._labels,
             "kind": "ramp",
@@ -105,7 +105,7 @@ class SquareValue(Value):
 
         return value + self.offset
 
-    def to_dict(self) -> dict[str, any]:
+    def to_dict(self) -> dict[str, typing.Any]:
         return {
             "labels": self._labels,
             "kind": "square",
@@ -135,7 +135,7 @@ class SineValue(Value):
 
         return value + self.offset
 
-    def to_dict(self) -> dict[str, any]:
+    def to_dict(self) -> dict[str, typing.Any]:
         return {
             "labels": self._labels,
             "kind": "sine",
@@ -156,7 +156,7 @@ class GaussianValue(Value):
     def get_value(self) -> float:
         return random.gauss(self.mean, self.sigma)
 
-    def to_dict(self) -> dict[str, any]:
+    def to_dict(self) -> dict[str, typing.Any]:
         return {
             "labels": self._labels,
             "kind": "gaussian",
@@ -218,9 +218,9 @@ class Metric:
 
         match value.kind:
             case "static":
-                v = StaticValue(value.labels, value.value)
+                return StaticValue(value.labels, value.value)
             case "ramp":
-                v = RampValue(
+                return RampValue(
                     value.labels,
                     value.period,
                     value.peak,
@@ -228,7 +228,7 @@ class Metric:
                     value.invert,
                 )
             case "square":
-                v = SquareValue(
+                return SquareValue(
                     value.labels,
                     value.period,
                     value.magnitude,
@@ -237,10 +237,12 @@ class Metric:
                     value.invert,
                 )
             case "sine":
-                v = SineValue(value.labels, value.period, value.amplitude, value.offset)
+                return SineValue(
+                    value.labels, value.period, value.amplitude, value.offset
+                )
             case "gaussian":
-                v = GaussianValue(value.labels, value.mean, value.sigma)
-        return v
+                return GaussianValue(value.labels, value.mean, value.sigma)
+        raise ValueError("Unable to create value from kind")
 
     def to_dict(self):
         return {

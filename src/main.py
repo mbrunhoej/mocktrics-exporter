@@ -4,7 +4,7 @@ import uvicorn
 from prometheus_client import start_http_server
 
 import api
-from metrics import Metric, metrics
+from metrics import metrics
 
 
 async def main() -> None:
