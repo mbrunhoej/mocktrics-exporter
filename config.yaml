@@ -29,11 +29,6 @@ metrics:
         offset: 50
         labels:
           - sine
-      - kind: gaussian
-        mean: 50
-        sigma: 10
-        labels: 
-          - gaussian
   - name: static
     documentation: Mock metric for testing
     labels:
