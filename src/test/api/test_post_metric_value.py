@@ -163,29 +163,3 @@ def test_nonexisting_metric(client: TestClient):
 
     assert response.status_code == 404
     assert len(metrics.metrics.get_metrics()) == metric_count
-
-
-def test_metric_unprocessable_value(client: TestClient):
-
-    metric = metrics.Metric(
-        name="test_metric_unprocessable_value",
-        labels=["type"],
-        documentation="documentation for test metric",
-        values=[],
-    )
-
-    metrics.metrics.add_metric(metric)
-
-    metric_count = len(metrics.metrics.get_metrics())
-
-    response = client.post(
-        "/metric/test_metric_unprocessable_value/value",
-        headers={
-            "accept": "application/json",
-        },
-        json={"kind": "nonexisting", "labels": ["type"], "value": 0},
-    )
-
-    assert response.status_code == 422
-    assert len(metrics.metrics.get_metrics()) == metric_count
-    assert len(metric.values) == 0

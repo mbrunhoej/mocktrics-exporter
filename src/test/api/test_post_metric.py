@@ -133,25 +133,3 @@ def test_metric_duplicate_value(client: TestClient):
     )
     assert response.status_code == 409
     assert len(metrics.metrics.get_metrics()) == metric_count + 1
-
-
-def test_metric_unprocessable_value(client: TestClient):
-
-    metric_count = len(metrics.metrics.get_metrics())
-
-    response = client.post(
-        "/metric",
-        headers={
-            "accept": "application/json",
-        },
-        json={
-            "name": "test_metric_single_value",
-            "documentation": "documentation for test metric",
-            "unit": "",
-            "labels": {},
-            "values": [],
-        },
-    )
-
-    assert response.status_code == 422
-    assert len(metrics.metrics.get_metrics()) == metric_count

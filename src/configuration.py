@@ -124,7 +124,7 @@ class Metric(pydantic.BaseModel):
     documentation: str
     unit: str = ""
     labels: list[str] = []
-    values: list[StaticValue | RampValue | SquareValue | SineValue | GaussianValue]
+    values: list[MetricValue]
 
 
 class Configuration(pydantic.BaseModel):

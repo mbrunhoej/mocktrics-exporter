@@ -4,6 +4,8 @@ from fastapi.responses import JSONResponse
 import configuration
 import metrics
 
+from fastapi import Query
+
 api = FastAPI(redirect_slashes=False)
 
 
@@ -56,7 +58,7 @@ async def post_metric(metric: configuration.Metric) -> JSONResponse:
 
 @api.post("/metric/{id}/value")
 def post_metric_value(id: str, value: configuration.MetricValue) -> JSONResponse:
-    
+
     try:
         metric = metrics.metrics.get_metric(id)
         metric.add_value(metric.create_value(value))
@@ -84,7 +86,7 @@ def post_metric_value(id: str, value: configuration.MetricValue) -> JSONResponse
                 "error": f"Requested metric does not exist",
             },
         )
-        
+
     return JSONResponse(
         status_code=201,
         content={"success": True, "name": id, "action": "created"},
@@ -102,14 +104,32 @@ def get_metric_all() -> JSONResponse:
 
 @api.get("/metric/{name}")
 def get_metric_by_id(name: str) -> JSONResponse:
-    return JSONResponse(content=metrics.metrics.get_metric(name).to_dict())
+    try:
+        metric = metrics.metrics.get_metric(name)
+    except KeyError:
+        return JSONResponse(
+            status_code=404,
+            content={
+                "success": False,
+                "error": f"Requested metric does not exist",
+            },
+        )
+    return JSONResponse(content=metric.to_dict())
 
 
-@api.delete("/metric")
+@api.delete("/metric/{id}")
 async def delete_metric(id: str) -> JSONResponse:
     try:
         metrics.metrics.delete_metric(id)
         return JSONResponse(status_code=200, content={"success": True})
+    except KeyError:
+        return JSONResponse(
+            status_code=404,
+            content={
+                "success": False,
+                "error": f"Requested metric does not exist",
+            },
+        )
     except Exception as e:
         return JSONResponse(
             status_code=500, content={"success": False, "error": str(e)}
@@ -117,8 +137,17 @@ async def delete_metric(id: str) -> JSONResponse:
 
 
 @api.delete("/metric/{id}/value")
-def delete_metric_value(id: str, labels: list[str]) -> JSONResponse:
-    metric = metrics.metrics.get_metric(id)
+def delete_metric_value(id: str, labels: list[str] = Query(...)) -> JSONResponse:
+    try:
+        metric = metrics.metrics.get_metric(id)
+    except KeyError:
+        return JSONResponse(
+            status_code=404,
+            content={
+                "success": False,
+                "error": f"Requested metric does not exist",
+            },
+        )
     if len(labels) != len(metric.labels):
         return JSONResponse(
             status_code=419,
