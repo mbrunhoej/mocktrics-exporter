@@ -71,6 +71,8 @@ class _Metrics:
     def __init__(self):
         self._metrics: dict[str, Metric] = {}
         self._run = False
+        self._wake_event = threading.Event()
+        self._collect_interval: int = configuration.configuration.collect_interval
 
     def add_metric(self, metric: Metric, read_only: bool = False) -> str:
         id = metric.name
@@ -105,12 +107,16 @@ class _Metrics:
 
                 self.collect()
 
-                next_run += configuration.configuration.collect_interval
+                next_run += self._collect_interval
                 sleep_time = next_run - time.monotonic()
                 if sleep_time > 0:
-                    time.sleep(sleep_time)
+                    awakened = self._wake_event.wait(timeout=sleep_time)
+                    if awakened:
+                        self._wake_event.clear()
+                        next_run = time.monotonic()
+                        continue
                 else:
-                    next_run = time.time()
+                    next_run = time.monotonic()
 
                 if not self._run:
                     break
@@ -120,6 +126,16 @@ class _Metrics:
 
     def stop_collecting(self) -> None:
         self._run = False
+
+    def wake(self) -> None:
+        self._wake_event.set()
+
+    def get_collect_interval(self) -> int:
+        return int(self._collect_interval)
+
+    def set_collect_interval(self, seconds: int) -> None:
+        self._collect_interval = int(seconds)
+        self.wake()
 
 
 metrics = _Metrics()

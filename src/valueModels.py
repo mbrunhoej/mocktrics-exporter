@@ -18,15 +18,25 @@ def parse_duration(duration: str | int):
     return int(num) * multipliers[unit]
 
 
-def parse_size(size: str | int):
-    if isinstance(size, int):
+def parse_size(size: str | int | float):
+    if isinstance(size, (int, float)):
         return size
-    match = re.fullmatch(r"(\d+)([umMkG])", size.strip().lower())
+    s = str(size).strip()
+    if re.fullmatch(r"\d+(?:\.\d+)?", s):
+        return float(s) if "." in s else int(s)
+    match = re.fullmatch(r"(\d+(?:\.\d+)?)([uUmMkKgG])", s)
     if not match:
-        raise ValueError(f"Invalid duration: {size}")
+        raise ValueError(f"Invalid size: {size}")
     num, unit = match.groups()
-    multipliers = {"u": 1e-6, "m": 1e-3, "k": 1e3, "M": 1e6, "G": 1e9}
-    return int(num) * multipliers[unit]
+    multipliers = {
+        "u": 1e-6,
+        "m": 1e-3,
+        "k": 1e3,
+        "K": 1e3,
+        "M": 1e6,
+        "G": 1e9,
+    }
+    return float(num) * multipliers[unit]
 
 
 class StaticValue(pydantic.BaseModel):
