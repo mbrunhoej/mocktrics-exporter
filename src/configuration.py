@@ -13,7 +13,7 @@ class Metric(pydantic.BaseModel):
 
 
 class Configuration(pydantic.BaseModel):
-    collect_interval: int = 1
+    collect_interval: int = 10
     disable_units: bool = False
     metrics: list[Metric]
 
