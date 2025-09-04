@@ -1,4 +1,5 @@
 name: CI and Release
+run-name: Release
 
 on:
   push:
@@ -20,7 +21,8 @@ permissions:
 
 jobs:
   tests:
-    uses: ./.github/workflows/tests.yaml
+    uses: mbrunhoej/mocktricks-exporter/.github/workflows/tests.yaml@${{ github.sha }}
+    secrets: inherit
 
   pypi:
     name: Build and Publish to PyPI
