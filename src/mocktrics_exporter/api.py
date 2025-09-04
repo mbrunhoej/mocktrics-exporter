@@ -3,7 +3,7 @@ from importlib.resources import files
 from pathlib import Path
 from typing import Optional
 
-from fastapi import FastAPI, Query, Request, UploadFile
+from fastapi import APIRouter, FastAPI, Query, Request, UploadFile
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -12,6 +12,7 @@ from starlette.datastructures import FormData
 from . import configuration, metrics, valueModels
 
 api = FastAPI(redirect_slashes=False)
+ui = APIRouter(include_in_schema=False)
 
 # Static files and templates for simple UI
 # Prefer packaged resources; fall back to local directories if present.
@@ -48,6 +49,8 @@ if not static_dir:
 if static_dir:
     api.mount("/static", StaticFiles(directory=static_dir), name="static")
 templates = Jinja2Templates(directory=templates_dir)
+
+# UI routes are added below; include router after definitions
 
 
 # Small helpers to coerce form values into typed primitives for mypy
@@ -90,7 +93,7 @@ def _form_bool(form: FormData, key: str) -> bool:
     return False
 
 
-@api.get("/", response_class=HTMLResponse)
+@ui.get("/", response_class=HTMLResponse)
 async def root(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(
         "index.html",
@@ -102,8 +105,8 @@ async def root(request: Request) -> HTMLResponse:
     )
 
 
-@api.get("/ui", response_class=HTMLResponse)
-async def ui(request: Request) -> HTMLResponse:
+@ui.get("/ui", response_class=HTMLResponse)
+async def ui_index(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(
         "index.html",
         {
@@ -114,7 +117,7 @@ async def ui(request: Request) -> HTMLResponse:
     )
 
 
-@api.get("/ui/metrics", response_class=HTMLResponse)
+@ui.get("/ui/metrics", response_class=HTMLResponse)
 async def ui_metrics(request: Request) -> HTMLResponse:
     # Prepare a simple list for rendering
     metric_items = []
@@ -129,7 +132,7 @@ async def ui_metrics(request: Request) -> HTMLResponse:
     )
 
 
-@api.get("/ui/collect-interval", response_class=HTMLResponse)
+@ui.get("/ui/collect-interval", response_class=HTMLResponse)
 async def ui_collect_interval(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(
         "partials/collect_interval.html",
@@ -141,7 +144,7 @@ async def ui_collect_interval(request: Request) -> HTMLResponse:
     )
 
 
-@api.post("/ui/collect-interval", response_class=HTMLResponse)
+@ui.post("/ui/collect-interval", response_class=HTMLResponse)
 async def ui_collect_interval_post(request: Request) -> HTMLResponse:
     form: FormData = await request.form()
     editable = not configuration.config_has_collect_interval
@@ -207,7 +210,7 @@ async def set_collect_interval(payload: dict) -> JSONResponse:
         )
 
 
-@api.get("/ui/metric/new", response_class=HTMLResponse)
+@ui.get("/ui/metric/new", response_class=HTMLResponse)
 async def ui_metric_new(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(
         "partials/new_metric_form.html",
@@ -218,7 +221,7 @@ async def ui_metric_new(request: Request) -> HTMLResponse:
     )
 
 
-@api.post("/ui/metric", response_class=HTMLResponse)
+@ui.post("/ui/metric", response_class=HTMLResponse)
 async def ui_metric_create(request: Request) -> HTMLResponse:
     form: FormData = await request.form()
     name = _form_str(form, "name").strip()
@@ -345,7 +348,7 @@ async def ui_metric_create(request: Request) -> HTMLResponse:
     )
 
 
-@api.get("/ui/metric/{id}/add-value", response_class=HTMLResponse)
+@ui.get("/ui/metric/{id}/add-value", response_class=HTMLResponse)
 async def ui_metric_add_value_form(id: str, request: Request) -> HTMLResponse:
     try:
         metric = metrics.metrics.get_metric(id)
@@ -362,7 +365,7 @@ async def ui_metric_add_value_form(id: str, request: Request) -> HTMLResponse:
     )
 
 
-@api.post("/ui/metric/{id}/add-value", response_class=HTMLResponse)
+@ui.post("/ui/metric/{id}/add-value", response_class=HTMLResponse)
 async def ui_metric_add_value(id: str, request: Request) -> HTMLResponse:
     form: FormData = await request.form()
     try:
@@ -439,7 +442,7 @@ async def ui_metric_add_value(id: str, request: Request) -> HTMLResponse:
     )
 
 
-@api.get("/ui/metric/{id}/value", response_class=HTMLResponse)
+@ui.get("/ui/metric/{id}/value", response_class=HTMLResponse)
 async def ui_metric_value(
     id: str, request: Request, labels: list[str] = Query(...)
 ) -> HTMLResponse:
@@ -467,7 +470,7 @@ async def ui_metric_value(
     )
 
 
-@api.get("/ui/value-fields", response_class=HTMLResponse)
+@ui.get("/ui/value-fields", response_class=HTMLResponse)
 async def ui_value_fields(
     request: Request, kind: str = "", prefix: str = ""
 ) -> HTMLResponse:
@@ -476,6 +479,10 @@ async def ui_value_fields(
         "partials/value_fields.html",
         {"request": request, "kind": kind, "prefix": prefix},
     )
+
+
+# Mount the UI router (excluded from OpenAPI/Swagger)
+api.include_router(ui)
 
 
 @api.post("/metric")
