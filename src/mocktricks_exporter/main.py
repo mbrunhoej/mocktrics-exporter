@@ -3,8 +3,8 @@ import asyncio
 import uvicorn
 from prometheus_client import start_http_server
 
-import api
-from metrics import metrics
+from . import api
+from .metrics import metrics
 
 
 async def main() -> None:
@@ -17,8 +17,13 @@ async def main() -> None:
     await server.serve()
 
 
-if __name__ == "__main__":
+def cli() -> None:
+    """Console script entry point."""
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
         pass
+
+
+if __name__ == "__main__":
+    cli()

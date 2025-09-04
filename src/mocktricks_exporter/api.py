@@ -1,18 +1,27 @@
+from importlib.resources import files
+
 from fastapi import FastAPI, Query, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.datastructures import FormData
 
-import configuration
-import metrics
-import valueModels
+from . import configuration, metrics, valueModels
 
 api = FastAPI(redirect_slashes=False)
 
 # Static files and templates for simple UI
-api.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="templates")
+# Prefer packaged resources; fall back to local directories if present.
+try:
+    pkg_root = files(__package__)
+    static_dir = str(pkg_root.joinpath("static"))
+    templates_dir = str(pkg_root.joinpath("templates"))
+except Exception:
+    static_dir = "static"
+    templates_dir = "templates"
+
+api.mount("/static", StaticFiles(directory=static_dir), name="static")
+templates = Jinja2Templates(directory=templates_dir)
 
 
 @api.get("/", response_class=HTMLResponse)

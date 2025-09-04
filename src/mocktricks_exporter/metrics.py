@@ -3,8 +3,7 @@ import time
 
 from prometheus_client import Gauge
 
-import configuration
-import valueModels
+from . import configuration, valueModels
 
 
 class Metric:

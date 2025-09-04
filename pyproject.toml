@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mocktricks-exporter"
+version = "0.1.0"
+description = "A FastAPI-based mock Prometheus exporter with configurable metrics and UI."
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [{ name = "Mocktricks Exporter Maintainers" }]
+requires-python = ">=3.9"
+dependencies = [
+  "prometheus_client",
+  "PyYAML",
+  "pydantic",
+  "fastapi",
+  "uvicorn",
+  "jinja2",
+  "aiofiles",
+  "python-multipart",
+]
+keywords = ["prometheus", "exporter", "mock", "fastapi", "metrics"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "License :: OSI Approved :: Apache Software License",
+  "Operating System :: OS Independent",
+  "Framework :: FastAPI",
+  "Topic :: Internet :: WWW/HTTP",
+  "Topic :: System :: Monitoring",
+]
+
+[project.urls]
+Homepage = "https://github.com/your-org/mocktricks-exporter"
+Repository = "https://github.com/your-org/mocktricks-exporter"
+
+[project.scripts]
+mocktricks-exporter = "mocktricks_exporter.main:cli"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["mocktricks_exporter*"]
+
+[tool.setuptools.package-data]
+mocktricks_exporter = [
+  "templates/*.html",
+  "templates/partials/*.html",
+  "static/*",
+]

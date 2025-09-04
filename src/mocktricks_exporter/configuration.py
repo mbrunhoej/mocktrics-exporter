@@ -1,7 +1,7 @@
 import pydantic
 import yaml
 
-import valueModels
+from . import valueModels
 
 
 class Metric(pydantic.BaseModel):
