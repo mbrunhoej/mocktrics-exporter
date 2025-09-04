@@ -1,6 +1,6 @@
 """Compatibility shim for tests importing `metrics` as a top-level module.
 
-Re-exports symbols from `mocktricks_exporter.metrics`.
+Re-exports symbols from `mocktrics_exporter.metrics`.
 """
 
-from mocktricks_exporter.metrics import *  # noqa: F401,F403
+from mocktrics_exporter.metrics import *  # noqa: F401,F403

@@ -3,12 +3,12 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "mocktricks-exporter"
+name = "mocktrics-exporter"
 version = "0.1.0"
 description = "A FastAPI-based mock Prometheus exporter with configurable metrics and UI."
 readme = "README.md"
 license = { file = "LICENSE" }
-authors = [{ name = "Mocktricks Exporter Maintainers" }]
+authors = [{ name = "mocktrics Exporter Maintainers" }]
 requires-python = ">=3.9"
 dependencies = [
   "prometheus_client",
@@ -32,21 +32,21 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/mbrunhoej/mocktricks-exporter"
-Repository = "https://github.com/mbrunhoej/mocktricks-exporter"
+Homepage = "https://github.com/mbrunhoej/mocktrics-exporter"
+Repository = "https://github.com/mbrunhoej/mocktrics-exporter"
 
 [project.scripts]
-mocktricks-exporter = "mocktricks_exporter.main:cli"
+mocktrics-exporter = "mocktrics_exporter.main:cli"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["mocktricks_exporter*"]
+include = ["mocktrics_exporter*"]
 
 [tool.setuptools.package-data]
-mocktricks_exporter = [
+mocktrics_exporter = [
   "templates/*.html",
   "templates/partials/*.html",
   "static/*",
@@ -54,7 +54,7 @@ mocktricks_exporter = [
 
 # Centralized tool config migrated from pytest.ini and mypy.ini
 [tool.pytest.ini_options]
-pythonpath = ["src", "src/mocktricks_exporter"]
+pythonpath = ["src", "src/mocktrics_exporter"]
 
 [tool.mypy]
 check_untyped_defs = true
