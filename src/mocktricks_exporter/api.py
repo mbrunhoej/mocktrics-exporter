@@ -1,6 +1,7 @@
 from importlib.resources import files
+from typing import Optional
 
-from fastapi import FastAPI, Query, Request
+from fastapi import FastAPI, Query, Request, UploadFile
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -22,6 +23,46 @@ except Exception:
 
 api.mount("/static", StaticFiles(directory=static_dir), name="static")
 templates = Jinja2Templates(directory=templates_dir)
+
+
+# Small helpers to coerce form values into typed primitives for mypy
+def _form_str(form: FormData, key: str, default: str = "") -> str:
+    v = form.get(key)
+    if isinstance(v, str):
+        return v
+    if v is None:
+        return default
+    if isinstance(v, (int, float)):
+        return str(v)
+    if isinstance(v, UploadFile):
+        # For text inputs we don't expect UploadFile; treat as missing
+        return default
+    return default
+
+
+def _form_int(form: FormData, key: str, default: Optional[int] = None) -> int:
+    s = _form_str(form, key, "")
+    if s == "":
+        return 0 if default is None else default
+    return int(s)
+
+
+def _form_float(form: FormData, key: str, default: Optional[float] = None) -> float:
+    s = _form_str(form, key, "")
+    if s == "":
+        return 0.0 if default is None else default
+    return float(s)
+
+
+def _form_bool(form: FormData, key: str) -> bool:
+    v = form.get(key)
+    if isinstance(v, bool):
+        return v
+    if isinstance(v, (int, float)):
+        return bool(v)
+    if isinstance(v, str):
+        return v.strip().lower() in {"1", "true", "on", "yes"}
+    return False
 
 
 @api.get("/", response_class=HTMLResponse)
@@ -81,7 +122,7 @@ async def ui_collect_interval_post(request: Request) -> HTMLResponse:
     editable = not configuration.config_has_collect_interval
     if editable:
         try:
-            seconds = int(form.get("seconds") or 1)
+            seconds = _form_int(form, "seconds", 1)
             if seconds < 1 or seconds > 300:
                 raise ValueError("Interval must be between 1 and 300 seconds")
             metrics.metrics.set_collect_interval(seconds)
@@ -155,10 +196,10 @@ async def ui_metric_new(request: Request) -> HTMLResponse:
 @api.post("/ui/metric", response_class=HTMLResponse)
 async def ui_metric_create(request: Request) -> HTMLResponse:
     form: FormData = await request.form()
-    name = (form.get("name") or "").strip()
-    documentation = (form.get("documentation") or "").strip()
-    unit = (form.get("unit") or "").strip()
-    labels_raw = (form.get("labels") or "").strip()
+    name = _form_str(form, "name").strip()
+    documentation = _form_str(form, "documentation").strip()
+    unit = _form_str(form, "unit").strip()
+    labels_raw = _form_str(form, "labels").strip()
     labels = [s.strip() for s in labels_raw.split(",") if s.strip()]
 
     # Respect disable_units setting
@@ -185,16 +226,16 @@ async def ui_metric_create(request: Request) -> HTMLResponse:
 
     # Optional initial value (supports multiple kinds)
     values_list: list[valueModels.MetricValue] = []
-    init_kind = (form.get("init_kind") or form.get("kind") or "").strip()
-    init_labels_raw = (form.get("init_labels") or "").strip()
+    init_kind = (_form_str(form, "init_kind") or _form_str(form, "kind")).strip()
+    init_labels_raw = _form_str(form, "init_labels").strip()
     init_labels = [s.strip() for s in init_labels_raw.split(",") if s.strip()]
     if init_kind:
         try:
             if labels and len(init_labels) != len(labels):
                 raise AttributeError("Label count mismatch")
             if init_kind == "static":
-                init_value_raw = form.get("init_value")
-                if init_value_raw is None or str(init_value_raw).strip() == "":
+                init_value_raw = _form_str(form, "init_value").strip()
+                if init_value_raw == "":
                     raise ValueError("Initial value required for static kind")
                 values_list.append(
                     valueModels.StaticValue(
@@ -205,10 +246,10 @@ async def ui_metric_create(request: Request) -> HTMLResponse:
                 values_list.append(
                     valueModels.RampValue(
                         kind="ramp",
-                        period=form.get("init_period"),
-                        peak=form.get("init_peak"),
-                        offset=form.get("init_offset") or 0,
-                        invert=bool(form.get("init_invert")),
+                        period=_form_int(form, "init_period"),
+                        peak=_form_int(form, "init_peak"),
+                        offset=_form_int(form, "init_offset", 0),
+                        invert=_form_bool(form, "init_invert"),
                         labels=init_labels,
                     )
                 )
@@ -216,9 +257,9 @@ async def ui_metric_create(request: Request) -> HTMLResponse:
                 values_list.append(
                     valueModels.SineValue(
                         kind="sine",
-                        period=form.get("init_period"),
-                        amplitude=form.get("init_amplitude"),
-                        offset=form.get("init_offset") or 0,
+                        period=_form_int(form, "init_period"),
+                        amplitude=_form_int(form, "init_amplitude"),
+                        offset=_form_int(form, "init_offset", 0),
                         labels=init_labels,
                     )
                 )
@@ -226,11 +267,11 @@ async def ui_metric_create(request: Request) -> HTMLResponse:
                 values_list.append(
                     valueModels.SquareValue(
                         kind="square",
-                        period=form.get("init_period"),
-                        magnitude=form.get("init_magnitude"),
-                        offset=form.get("init_offset") or 0,
-                        duty_cycle=float(form.get("init_duty_cycle") or 50),
-                        invert=bool(form.get("init_invert")),
+                        period=_form_int(form, "init_period"),
+                        magnitude=_form_int(form, "init_magnitude"),
+                        offset=_form_int(form, "init_offset", 0),
+                        duty_cycle=_form_float(form, "init_duty_cycle", 50.0),
+                        invert=_form_bool(form, "init_invert"),
                         labels=init_labels,
                     )
                 )
@@ -238,8 +279,8 @@ async def ui_metric_create(request: Request) -> HTMLResponse:
                 values_list.append(
                     valueModels.GaussianValue(
                         kind="gaussian",
-                        mean=form.get("init_mean"),
-                        sigma=form.get("init_sigma"),
+                        mean=_form_int(form, "init_mean"),
+                        sigma=_form_float(form, "init_sigma"),
                         labels=init_labels,
                     )
                 )
@@ -309,16 +350,17 @@ async def ui_metric_add_value(id: str, request: Request) -> HTMLResponse:
             {"request": request, "ok": False, "message": "Metric is read-only"},
         )
 
-    kind = (form.get("kind") or "").strip()
-    labels_raw = (form.get("labels") or "").strip()
+    kind = _form_str(form, "kind").strip()
+    labels_raw = _form_str(form, "labels").strip()
     labels = [s.strip() for s in labels_raw.split(",") if s.strip()]
 
     try:
         if metric.labels and len(labels) != len(metric.labels):
             raise AttributeError("Label count mismatch")
+        v: valueModels.MetricValue
         if kind == "static":
-            value_raw = form.get("value")
-            if value_raw is None or str(value_raw).strip() == "":
+            value_raw = _form_str(form, "value").strip()
+            if value_raw == "":
                 raise ValueError("Value required for static kind")
             v = valueModels.StaticValue(
                 kind="static", value=float(value_raw), labels=labels
@@ -326,35 +368,35 @@ async def ui_metric_add_value(id: str, request: Request) -> HTMLResponse:
         elif kind == "ramp":
             v = valueModels.RampValue(
                 kind="ramp",
-                period=form.get("period"),
-                peak=form.get("peak"),
-                offset=form.get("offset") or 0,
-                invert=bool(form.get("invert")),
+                period=_form_int(form, "period"),
+                peak=_form_int(form, "peak"),
+                offset=_form_int(form, "offset", 0),
+                invert=_form_bool(form, "invert"),
                 labels=labels,
             )
         elif kind == "sine":
             v = valueModels.SineValue(
                 kind="sine",
-                period=form.get("period"),
-                amplitude=form.get("amplitude"),
-                offset=form.get("offset") or 0,
+                period=_form_int(form, "period"),
+                amplitude=_form_int(form, "amplitude"),
+                offset=_form_int(form, "offset", 0),
                 labels=labels,
             )
         elif kind == "square":
             v = valueModels.SquareValue(
                 kind="square",
-                period=form.get("period"),
-                magnitude=form.get("magnitude"),
-                offset=form.get("offset") or 0,
-                duty_cycle=float(form.get("duty_cycle") or 50),
-                invert=bool(form.get("invert")),
+                period=_form_int(form, "period"),
+                magnitude=_form_int(form, "magnitude"),
+                offset=_form_int(form, "offset", 0),
+                duty_cycle=_form_float(form, "duty_cycle", 50.0),
+                invert=_form_bool(form, "invert"),
                 labels=labels,
             )
         elif kind == "gaussian":
             v = valueModels.GaussianValue(
                 kind="gaussian",
-                mean=form.get("mean"),
-                sigma=form.get("sigma"),
+                mean=_form_int(form, "mean"),
+                sigma=_form_float(form, "sigma"),
                 labels=labels,
             )
         else:

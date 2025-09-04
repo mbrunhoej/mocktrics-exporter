@@ -32,7 +32,7 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/your-org/mocktricks-exporter"
+Homepage = "https://github.com/matler/mocktricks-exporter"
 Repository = "https://github.com/your-org/mocktricks-exporter"
 
 [project.scripts]
@@ -51,3 +51,10 @@ mocktricks_exporter = [
   "templates/partials/*.html",
   "static/*",
 ]
+
+# Centralized tool config migrated from pytest.ini and mypy.ini
+[tool.pytest.ini_options]
+pythonpath = ["src", "src/mocktricks_exporter"]
+
+[tool.mypy]
+check_untyped_defs = true

@@ -1,8 +1,7 @@
-prometheus_client
-pyyaml
-pydantic
-fastapi
-uvicorn
-jinja2
-aiofiles
-python-multipart
+black
+mypy
+pytest
+httpx
+isort
+flake8
+types-PyYAML
