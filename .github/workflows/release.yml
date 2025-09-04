@@ -10,8 +10,7 @@ permissions:
 
 jobs:
   tests:
-    uses: mbrunhoej/mocktricks-exporter/.github/workflows/tests.yaml@${{ github.sha }}
-    secrets: inherit
+    uses: ./.github/workflows/tests.yaml
 
   pypi:
     name: Build and Publish to PyPI
