@@ -37,20 +37,25 @@ jobs:
 
       - name: Verify tag matches project version
         run: |
+          set -euo pipefail
           TAG="${GITHUB_REF#refs/tags/}"
-          python - <<'PY' "$TAG"
-import sys
-from pathlib import Path
-import tomllib
-
-tag = sys.argv[1].lstrip('v')
-data = tomllib.loads(Path('pyproject.toml').read_text())
-version = data['project']['version']
-print(f"Tag: {tag} | Version: {version}")
-if tag != version:
-    print(f"Error: tag ({tag}) does not match project version ({version})", file=sys.stderr)
-    sys.exit(1)
-PY
+          TAG_STRIPPED="${TAG#v}"
+          VERSION=$(awk '
+            $0 ~ /^\[project\]/ { inproj=1; next }
+            inproj && $0 ~ /^\[/ { inproj=0 }
+            inproj && $0 ~ /^version[[:space:]]*=/ {
+              match($0, /"[^"]+"/); v=substr($0, RSTART+1, RLENGTH-2); print v; exit
+            }
+          ' pyproject.toml)
+          echo "Tag: $TAG_STRIPPED | Version: $VERSION"
+          if [ -z "$VERSION" ]; then
+            echo "Error: could not parse project.version from pyproject.toml" >&2
+            exit 1
+          fi
+          if [ "$TAG_STRIPPED" != "$VERSION" ]; then
+            echo "Error: tag ($TAG_STRIPPED) does not match project version ($VERSION)" >&2
+            exit 1
+          fi
 
       - name: Build sdist and wheel
         run: python -m build
@@ -61,4 +66,3 @@ PY
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}
           verify-metadata: true
-
