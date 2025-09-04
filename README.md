@@ -17,6 +17,10 @@ Small Prometheus exporter for generating configurable test metrics with a simple
 
 Place a `config.yaml` in your working directory to define initial metrics and settings (see `src/mocktrics_exporter/configuration.py` for schema). The UI lets you add and edit metrics at runtime when not marked as read-only by the config.
 
+### Static files directory
+
+The UI does not currently ship local assets, but the app mounts a `/static` directory for future use. When installed from a wheel, an empty static directory is included. If that is missing for any reason, the app will automatically create and use a user-local path at `~/.local/mocktrics-exporter/static` (override with `MOCKTRICS_EXPORTER_STATIC_DIR`).
+
 ## Development
 
 - Run locally with reload:

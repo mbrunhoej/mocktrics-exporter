@@ -49,7 +49,9 @@ include = ["mocktrics_exporter*"]
 mocktrics_exporter = [
   "templates/*.html",
   "templates/partials/*.html",
+  # Include empty static dir via .gitkeep so wheels don't break
   "static/*",
+  "static/.gitkeep",
 ]
 
 # Centralized tool config migrated from pytest.ini and mypy.ini

@@ -1,4 +1,6 @@
+import os
 from importlib.resources import files
+from pathlib import Path
 from typing import Optional
 
 from fastapi import FastAPI, Query, Request, UploadFile
@@ -15,13 +17,36 @@ api = FastAPI(redirect_slashes=False)
 # Prefer packaged resources; fall back to local directories if present.
 try:
     pkg_root = files(__package__)
-    static_dir = str(pkg_root.joinpath("static"))
-    templates_dir = str(pkg_root.joinpath("templates"))
+    static_res = pkg_root.joinpath("static")
+    templates_res = pkg_root.joinpath("templates")
+    static_dir = (
+        str(static_res) if getattr(static_res, "is_dir", lambda: False)() else None
+    )
+    templates_dir = (
+        str(templates_res)
+        if getattr(templates_res, "is_dir", lambda: False)()
+        else "templates"
+    )
 except Exception:
-    static_dir = "static"
+    static_dir = "static" if os.path.isdir("static") else None
     templates_dir = "templates"
 
-api.mount("/static", StaticFiles(directory=static_dir), name="static")
+# If no packaged/static dir could be resolved, create a user-local one
+if not static_dir:
+    # Allow override via env; else default under ~/.local/mocktrics-exporter/static
+    user_static_dir = os.environ.get(
+        "MOCKTRICS_EXPORTER_STATIC_DIR",
+        str(Path.home() / ".local" / "mocktrics-exporter" / "static"),
+    )
+    try:
+        os.makedirs(user_static_dir, exist_ok=True)
+        static_dir = user_static_dir
+    except Exception:
+        # If we cannot create it, leave static_dir as None and skip mounting
+        static_dir = None
+
+if static_dir:
+    api.mount("/static", StaticFiles(directory=static_dir), name="static")
 templates = Jinja2Templates(directory=templates_dir)
 
 
