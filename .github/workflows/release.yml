@@ -28,7 +28,6 @@ jobs:
 
   pypi:
     name: Build and Publish to PyPI
-    if: startsWith(github.ref, 'refs/tags/')
     needs: [tests]
     runs-on: ubuntu-latest
     environment:
@@ -65,7 +64,9 @@ jobs:
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+        if: startsWith(github.ref, 'refs/tags/')
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}
+          verify-metadata: true
           # To test publishing first, uncomment the next line and add TEST_PYPI_API_TOKEN
           # repository-url: https://test.pypi.org/legacy/
