@@ -1,6 +1,14 @@
 name: Test application
 run-name: Unit tests
 
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+    branches:
+      - "**"
+
 jobs:
 
   syntax-tests:
@@ -24,18 +32,16 @@ jobs:
           python -m pip install -e .
 
       - name: Run Autoflake8 validation
-        run: autoflake8 --check -r src/services/authorization-server
+        run: autoflake8 --check -r src/
 
       - name: Run Isort validation
-        run: isort --check-only --diff --profile black src/services/authorization-server
+        run: isort --check-only --diff --profile black src/
 
       - name: Run Black validation
-        run: black --check src/services/authorization-server
+        run: black --check src/
 
       - name: Run mypy validation
-        env:
-          MYPYPATH: src/common:src/services/authorization-server/src
-        run: mypy src/services/authorization-server --explicit-package-bases
+        run: mypy src/
 
   unit-tests:
     runs-on: ubuntu-latest
