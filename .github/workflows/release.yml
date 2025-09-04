@@ -5,6 +5,8 @@ on:
   push:
     branches:
       - "**"
+    tags:
+      - "*"
   pull_request:
     branches:
       - "**"
@@ -21,7 +23,7 @@ permissions:
 
 jobs:
   tests:
-    uses: mbrunhoej/mocktricks-exporter/.github/workflows/tests.yaml@${{ github.sha }}
+    uses: ./.github/workflows/tests.yaml
     secrets: inherit
 
   pypi:
