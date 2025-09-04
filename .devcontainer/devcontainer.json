@@ -1,0 +1,25 @@
+{
+  "name": "Python 3.13 Dev",
+  "image": "python:3.13",
+  "postCreateCommand": "pip install pre-commit && pre-commit install && pip install -r requirements.txt",
+  "forwardPorts": [8000, 8080, 9090, 9093],
+  "customizations": {
+    "vscode": {
+      "settings": {},
+      "extensions": [
+        "redhat.vscode-yaml",
+        "donjayamanne.python-extension-pack",
+        "matangover.mypy",
+        "mikoz.black-py",
+        "ms-azuretools.vscode-containers",
+        "donjayamanne.git-extension-pack",
+        "ms-python.flake8",
+        "ms-python.mypy-type-checker"
+      ]
+    }
+  },
+  "mounts": [
+    "source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind,consistency=cached",
+    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+  ]
+}

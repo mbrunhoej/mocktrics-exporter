@@ -1,0 +1,8 @@
+autoflake8
+black
+mypy
+pytest
+httpx
+isort
+flake8
+types-PyYAML

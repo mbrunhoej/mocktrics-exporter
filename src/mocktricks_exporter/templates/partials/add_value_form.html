@@ -1,0 +1,41 @@
+<div class="mt-2 rounded-md border bg-white p-3" data-form-open>
+  <div class="mb-2 flex items-center justify-between">
+    <div class="text-xs font-semibold">Add Labelset</div>
+    <button class="text-[11px] text-slate-600 hover:text-slate-900"
+      hx-get="/ui/metrics" hx-target="#add-value-{{ metric.id }}" hx-swap="innerHTML">Close</button>
+  </div>
+  <form
+    hx-post="/ui/metric/{{ metric.id }}/add-value"
+    hx-target="#add-value-{{ metric.id }}"
+    hx-swap="innerHTML"
+    class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs"
+  >
+    <div>
+      <label class="block text-[11px] text-neutral-600">Kind</label>
+      <select name="kind" class="mt-1 w-full rounded-md border px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              hx-get="/ui/value-fields" hx-trigger="change" hx-target="#value-fields-{{ metric.id }}" hx-swap="innerHTML"
+              hx-vals='{"prefix":""}'>
+        <option value="static">static</option>
+        <option value="ramp">ramp</option>
+        <option value="sine">sine</option>
+        <option value="square">square</option>
+        <option value="gaussian">gaussian</option>
+      </select>
+    </div>
+    <div class="sm:col-span-2">
+      <label class="block text-[11px] text-neutral-600">Labels (comma separated)</label>
+      <input name="labels" class="mt-1 w-full rounded-md border px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400" placeholder="{{ metric.labels | join(', ') if metric.labels else '' }}" />
+    </div>
+    <div id="value-fields-{{ metric.id }}" class="contents">
+      <div class="sm:col-span-1">
+        <label class="block text-[11px] text-neutral-600">Static Value</label>
+        <input name="value" class="mt-1 w-full rounded-md border px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400" placeholder="123" />
+      </div>
+    </div>
+    <div class="sm:col-span-2 flex items-end gap-2">
+      <button class="inline-flex items-center rounded-md border border-indigo-600 bg-indigo-600 px-3 py-1.5 text-xs text-white hover:bg-indigo-500">Add</button>
+      <button type="button" class="inline-flex items-center rounded-md border px-3 py-1.5 text-xs hover:bg-slate-50"
+        hx-get="/ui/metrics" hx-target="#add-value-{{ metric.id }}" hx-swap="innerHTML">Cancel</button>
+    </div>
+  </form>
+</div>

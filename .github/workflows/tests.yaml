@@ -1,0 +1,70 @@
+name: Test application
+run-name: Unit tests
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+    branches:
+      - "**"
+  workflow_call:
+    inputs: {}
+    secrets: {}
+
+jobs:
+
+  syntax-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'  
+
+      - name: Install dev dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install module
+        run: |
+          python -m pip install -e .
+
+      - name: Run Autoflake8 validation
+        run: autoflake8 --check -r src/
+
+      - name: Run Isort validation
+        run: isort --check-only --diff --profile black src/
+
+      - name: Run Black validation
+        run: black --check src/
+
+      - name: Run mypy validation
+        run: mypy src/
+
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'  
+
+      - name: Install dev dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install module
+        run: |
+          python -m pip install -e .
+
+      - name: Run tests
+        run: pytest
