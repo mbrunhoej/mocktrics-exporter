@@ -48,7 +48,7 @@ include = ["mocktricks_exporter*"]
 [tool.setuptools.package-data]
 mocktricks_exporter = [
   "templates/*.html",
-  "templates/partials/*.html",grep -Eo 'version\s*=\s*"[0-9.]+"' pyproject.toml | cut -d'"' -f2
+  "templates/partials/*.html",
   "static/*",
 ]
 
