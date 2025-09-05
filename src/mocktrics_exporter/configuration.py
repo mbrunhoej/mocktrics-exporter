@@ -7,10 +7,10 @@ from .arguments import arguments
 
 class Metric(pydantic.BaseModel):
     name: str
-    documentation: str
+    documentation: str = ""
     unit: str = ""
-    labels: list[str] = []
-    values: list[valueModels.MetricValue]
+    labels: list[str]
+    values: list[valueModels.MetricValue] = []
 
 
 class Configuration(pydantic.BaseModel):

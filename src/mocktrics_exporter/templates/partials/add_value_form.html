@@ -5,7 +5,7 @@
       hx-get="/ui/metrics" hx-target="#add-value-{{ metric.id }}" hx-swap="innerHTML">Close</button>
   </div>
   <form
-    hx-post="/ui/metric/{{ metric.id }}/add-value"
+    hx-post="/metric/{{ metric.id }}/value"
     hx-target="#add-value-{{ metric.id }}"
     hx-swap="innerHTML"
     class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs"
