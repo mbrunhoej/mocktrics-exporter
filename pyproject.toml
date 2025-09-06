@@ -16,8 +16,6 @@ dependencies = [
   "pydantic",
   "fastapi",
   "uvicorn",
-  "jinja2",
-  "aiofiles",
   "python-multipart",
 ]
 keywords = ["prometheus", "exporter", "mock", "fastapi", "metrics"]
@@ -36,27 +34,11 @@ Homepage = "https://github.com/mbrunhoej/mocktrics-exporter"
 Repository = "https://github.com/mbrunhoej/mocktrics-exporter"
 
 [project.scripts]
-mocktrics-exporter = "mocktrics_exporter.main:cli"
-
-[tool.setuptools]
-package-dir = {"" = "src"}
-
-[tool.setuptools.packages.find]
-where = ["src"]
-include = ["mocktrics_exporter*"]
-
-[tool.setuptools.package-data]
-mocktrics_exporter = [
-  "templates/*.html",
-  "templates/partials/*.html",
-  # Include empty static dir via .gitkeep so wheels don't break
-  "static/*",
-  "static/.gitkeep",
-]
+mocktrics-exporter = "mocktrics_exporter:main"
 
 # Centralized tool config migrated from pytest.ini and mypy.ini
 [tool.pytest.ini_options]
-pythonpath = ["src", "src/mocktrics_exporter"]
+pythonpath = ["."]
 
 [tool.mypy]
 check_untyped_defs = true
