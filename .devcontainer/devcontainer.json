@@ -14,7 +14,8 @@
         "ms-azuretools.vscode-containers",
         "donjayamanne.git-extension-pack",
         "ms-python.flake8",
-        "ms-python.mypy-type-checker"
+        "ms-python.mypy-type-checker",
+        "GitHub.vscode-github-actions"
       ]
     }
   },

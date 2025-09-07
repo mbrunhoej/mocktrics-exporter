@@ -1,6 +1,0 @@
-{% if not ok %}
-  <div class="mb-2 text-red-700 text-sm">
-    {{ message }}
-  </div>
-{% endif %}
-<div hx-get="/ui/metrics" hx-trigger="load" hx-target="#metrics-list" hx-swap="innerHTML"></div>

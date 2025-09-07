@@ -1,7 +1,7 @@
 import pydantic
 import yaml
 
-from . import valueModels
+from mocktrics_exporter import valueModels
 
 
 class Metric(pydantic.BaseModel):

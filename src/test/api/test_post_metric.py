@@ -2,8 +2,7 @@ import pytest
 from fastapi.testclient import TestClient
 from prometheus_client import CollectorRegistry, core
 
-import api
-import metrics
+from mocktrics_exporter import api, metrics
 
 
 @pytest.fixture(scope="function", autouse=True)
