@@ -65,7 +65,7 @@ def test_post_collect_interval_read_only(client: TestClient, monkeypatch):
 
     metrics.metrics.set_collect_interval(10)
 
-    monkeypatch.setattr(configuration, "config_has_collect_interval", True)
+    monkeypatch.setattr(configuration.configuration, "_collect_interval_read_only", True)
 
     response = client.post(
         "/collect-interval/100",
