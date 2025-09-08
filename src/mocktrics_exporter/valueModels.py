@@ -9,6 +9,8 @@ import pydantic
 
 def parse_duration(duration: str | int):
     if isinstance(duration, int):
+        if duration < 0:
+            raise ValueError("Duration must be positive")
         return duration
     match = re.fullmatch(r"(\d+)([smhd])", duration.strip().lower())
     if not match:
