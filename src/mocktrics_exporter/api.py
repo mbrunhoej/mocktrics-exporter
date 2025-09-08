@@ -6,7 +6,6 @@ from mocktrics_exporter import configuration, metrics, valueModels
 api = FastAPI(redirect_slashes=False)
 
 
-# JSON API for collect interval (runtime override)
 @api.get("/collect-interval")
 async def get_collect_interval() -> JSONResponse:
     return JSONResponse(
@@ -153,32 +152,13 @@ def get_metric_by_id(name: str) -> JSONResponse:
 async def delete_metric(id: str, request: Request):
     try:
         metrics.metrics.delete_metric(id)
-        if request.headers.get("HX-Request") == "true":
-            return templates.TemplateResponse(
-                "partials/flash_and_refresh.html",
-                {"request": request, "ok": True, "message": ""},
-            )
         return JSONResponse(status_code=200, content={"success": True})
     except KeyError:
-        if request.headers.get("HX-Request") == "true":
-            return templates.TemplateResponse(
-                "partials/flash_and_refresh.html",
-                {
-                    "request": request,
-                    "ok": False,
-                    "message": "Requested metric does not exist",
-                },
-            )
         return JSONResponse(
             status_code=404,
             content={"success": False, "error": "Requested metric does not exist"},
         )
     except Exception as e:
-        if request.headers.get("HX-Request") == "true":
-            return templates.TemplateResponse(
-                "partials/flash_and_refresh.html",
-                {"request": request, "ok": False, "message": str(e)},
-            )
         return JSONResponse(
             status_code=500, content={"success": False, "error": str(e)}
         )
@@ -189,29 +169,11 @@ def delete_metric_value(id: str, request: Request, labels: list[str] = Query(...
     try:
         metric = metrics.metrics.get_metric(id)
     except KeyError:
-        if request.headers.get("HX-Request") == "true":
-            return templates.TemplateResponse(
-                "partials/flash_and_refresh.html",
-                {
-                    "request": request,
-                    "ok": False,
-                    "message": "Requested metric does not exist",
-                },
-            )
         return JSONResponse(
             status_code=404,
             content={"success": False, "error": "Requested metric does not exist"},
         )
     if len(labels) != len(metric.labels):
-        if request.headers.get("HX-Request") == "true":
-            return templates.TemplateResponse(
-                "partials/flash_and_refresh.html",
-                {
-                    "request": request,
-                    "ok": False,
-                    "message": "Value label count does not match metric label count",
-                },
-            )
         return JSONResponse(
             status_code=419,
             content={
@@ -224,25 +186,11 @@ def delete_metric_value(id: str, request: Request, labels: list[str] = Query(...
             metric.values.remove(value)
             break
     else:
-        if request.headers.get("HX-Request") == "true":
-            return templates.TemplateResponse(
-                "partials/flash_and_refresh.html",
-                {
-                    "request": request,
-                    "ok": False,
-                    "message": "Label set could not be found for metric",
-                },
-            )
         return JSONResponse(
             status_code=404,
             content={
                 "success": False,
                 "error": "Label set found not be found for metric",
             },
-        )
-    if request.headers.get("HX-Request") == "true":
-        return templates.TemplateResponse(
-            "partials/flash_and_refresh.html",
-            {"request": request, "ok": True, "message": ""},
         )
     return JSONResponse(content={"success": True, "name": id, "action": "deleted"})
