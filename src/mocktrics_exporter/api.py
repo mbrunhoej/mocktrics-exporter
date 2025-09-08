@@ -11,14 +11,14 @@ async def get_collect_interval() -> JSONResponse:
     return JSONResponse(
         content={
             "seconds": metrics.metrics.get_collect_interval(),
-            "editable": not configuration.configuration.collect_interval_is_read_only,
+            "editable": not configuration.configuration.collect_interval_is_read_only(),
         }
     )
 
 
 @api.post("/collect-interval/{interval}")
 async def set_collect_interval(interval: str) -> JSONResponse:
-    editable = not configuration.configuration.collect_interval_is_read_only
+    editable = not configuration.configuration.collect_interval_is_read_only()
     if not editable:
         return JSONResponse(
             status_code=403,

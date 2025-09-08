@@ -1,11 +1,5 @@
-import logging
-
-logging.basicConfig(
-    level=logging.DEBUG,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-)
-
 import asyncio
+import logging
 
 import uvicorn
 from prometheus_client import start_http_server
@@ -13,6 +7,11 @@ from prometheus_client import start_http_server
 from mocktrics_exporter.api import api
 from mocktrics_exporter.arguments import arguments
 from mocktrics_exporter.metrics import metrics
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
 
 
 def main() -> None:
