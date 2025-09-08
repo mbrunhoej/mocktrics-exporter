@@ -1,5 +1,5 @@
-name: Release
-run-name: Release
+name: CI and Release
+run-name: Release ${{ github.ref_name }}
 
 on:
   push:
@@ -10,8 +10,7 @@ permissions:
 
 jobs:
   tests:
-    uses: mbrunhoej/mocktrics-exporter/.github/workflows/tests.yaml@${{ github.sha }}
-    secrets: inherit
+    uses: ./.github/workflows/tests.yaml
 
   pypi:
     name: Build and Publish to PyPI
@@ -37,7 +36,25 @@ jobs:
 
       - name: Verify tag matches project version
         run: |
-          echo test
+          set -euo pipefail
+          TAG="${GITHUB_REF#refs/tags/}"
+          TAG_STRIPPED="${TAG#v}"
+          VERSION=$(awk '
+            $0 ~ /^\[project\]/ { inproj=1; next }
+            inproj && $0 ~ /^\[/ { inproj=0 }
+            inproj && $0 ~ /^version[[:space:]]*=/ {
+              match($0, /"[^"]+"/); v=substr($0, RSTART+1, RLENGTH-2); print v; exit
+            }
+          ' pyproject.toml)
+          echo "Tag: $TAG_STRIPPED | Version: $VERSION"
+          if [ -z "$VERSION" ]; then
+            echo "Error: could not parse project.version from pyproject.toml" >&2
+            exit 1
+          fi
+          if [ "$TAG_STRIPPED" != "$VERSION" ]; then
+            echo "Error: tag ($TAG_STRIPPED) does not match project version ($VERSION)" >&2
+            exit 1
+          fi
 
       - name: Build sdist and wheel
         run: python -m build
@@ -48,4 +65,3 @@ jobs:
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}
           verify-metadata: true
-
