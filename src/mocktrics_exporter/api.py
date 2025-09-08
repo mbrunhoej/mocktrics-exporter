@@ -28,18 +28,14 @@ async def set_collect_interval(interval: str) -> JSONResponse:
             },
         )
     try:
-        seconds = valueModels.parse_duration(
-            int(interval) if interval.isdigit() else interval
-        )
+        seconds = valueModels.parse_duration(int(interval) if interval.isdigit() else interval)
         print(seconds)
         if seconds < 1 or seconds > 60 * 60:
             raise ValueError("Interval must be between 1 and 300 seconds")
         metrics.metrics.set_collect_interval(seconds)
         return JSONResponse(content={"success": True})
     except Exception as e:
-        return JSONResponse(
-            status_code=400, content={"success": False, "error": str(e)}
-        )
+        return JSONResponse(status_code=400, content={"success": False, "error": str(e)})
 
 
 @api.post("/metric")
@@ -77,9 +73,7 @@ async def post_metric(metric: configuration.Metric) -> JSONResponse:
         )
 
     except Exception as e:
-        return JSONResponse(
-            status_code=500, content={"success": False, "error": str(e)}
-        )
+        return JSONResponse(status_code=500, content={"success": False, "error": str(e)})
 
 
 @api.post("/metric/{id}/value")
@@ -127,9 +121,7 @@ def post_metric_value(id: str, value: valueModels.MetricValue) -> JSONResponse:
 @api.get("/metric/all")
 def get_metric_all() -> JSONResponse:
     return JSONResponse(
-        content={
-            key: value.to_dict() for key, value in metrics.metrics.get_metrics().items()
-        }
+        content={key: value.to_dict() for key, value in metrics.metrics.get_metrics().items()}
     )
 
 
@@ -159,9 +151,7 @@ async def delete_metric(id: str, request: Request):
             content={"success": False, "error": "Requested metric does not exist"},
         )
     except Exception as e:
-        return JSONResponse(
-            status_code=500, content={"success": False, "error": str(e)}
-        )
+        return JSONResponse(status_code=500, content={"success": False, "error": str(e)})
 
 
 @api.delete("/metric/{id}/value")

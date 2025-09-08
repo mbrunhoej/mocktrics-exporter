@@ -16,8 +16,6 @@ dependencies = [
   "pydantic",
   "fastapi",
   "uvicorn",
-  "jinja2",
-  "aiofiles",
   "python-multipart",
 ]
 keywords = ["prometheus", "exporter", "mock", "fastapi", "metrics"]
@@ -35,7 +33,6 @@ classifiers = [
 Homepage = "https://github.com/mbrunhoej/mocktrics-exporter"
 Repository = "https://github.com/mbrunhoej/mocktrics-exporter"
 
-
 [tool.setuptools]
 package-dir = {"" = "src"}
 
@@ -43,9 +40,16 @@ package-dir = {"" = "src"}
 where = ["src"]
 include = ["mocktrics_exporter*"]
 
-# Centralized tool config migrated from pytest.ini and mypy.ini
 [tool.pytest.ini_options]
 pythonpath = ["src", "src/mocktrics_exporter"]
 
+[tool.black]
+line-length = 100
+target-version = ["py313"]
+
+[tool.flake8]
+max-line-length = 100
+
 [tool.mypy]
 check_untyped_defs = true
+ignore_missing_imports = true
