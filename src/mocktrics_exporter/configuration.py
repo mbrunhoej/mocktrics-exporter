@@ -22,7 +22,6 @@ class Configuration(pydantic.BaseModel):
     disable_units: bool = False
     metrics: list[Metric] = pydantic.Field(default_factory=list)
 
-    @pydantic.computed_field(return_type=bool)
     def collect_interval_is_read_only(self) -> bool:
         return self._collect_interval_read_only
 
