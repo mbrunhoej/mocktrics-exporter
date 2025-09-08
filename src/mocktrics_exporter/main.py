@@ -1,34 +1,31 @@
 import asyncio
+import logging
 
 import uvicorn
 from prometheus_client import start_http_server
 
-from . import api
-from .arguments import arguments
-from .metrics import metrics
-from .ui import register as register_ui
+from mocktrics_exporter.api import api
+from mocktrics_exporter.arguments import arguments
+from mocktrics_exporter.metrics import metrics
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
 
 
-async def main() -> None:
+def main() -> None:
     start_http_server(arguments.metrics_port)
     metrics.start_collecting()
 
-    # Register UI (templates + routes) with the FastAPI app
-    register_ui(api.api)
-
-    config = uvicorn.Config(api.api, port=arguments.api_port, host="0.0.0.0")
+    config = uvicorn.Config(api, port=arguments.api_port, host="0.0.0.0")
     server = uvicorn.Server(config)
 
-    await server.serve()
-
-
-def cli() -> None:
-    """Console script entry point."""
-    try:
-        asyncio.run(main())
-    except KeyboardInterrupt:
-        pass
+    asyncio.run(server.serve())
 
 
 if __name__ == "__main__":
-    cli()
+    try:
+        main()
+    except KeyboardInterrupt:
+        pass
