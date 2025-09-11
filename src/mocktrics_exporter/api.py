@@ -29,7 +29,6 @@ async def set_collect_interval(interval: str) -> JSONResponse:
         )
     try:
         seconds = valueModels.parse_duration(int(interval) if interval.isdigit() else interval)
-        print(seconds)
         if seconds < 1 or seconds > 60 * 60:
             raise ValueError("Interval must be between 1 and 300 seconds")
         metrics.metrics.set_collect_interval(seconds)

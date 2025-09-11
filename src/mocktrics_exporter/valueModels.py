@@ -22,11 +22,9 @@ def parse_duration(duration: str | int):
 
 def parse_size(size: str | int | float):
     if isinstance(size, (int, float)):
-        return size
+        return float(size)
     s = str(size).strip()
-    if re.fullmatch(r"\d+(?:\.\d+)?", s):
-        return float(s) if "." in s else int(s)
-    match = re.fullmatch(r"(\d+(?:\.\d+)?)([uUmMkKgG])", s)
+    match = re.fullmatch(r"(\d+(?:\.\d+)?)([umkMG])", s)
     if not match:
         raise ValueError(f"Invalid size: {size}")
     num, unit = match.groups()
@@ -34,7 +32,6 @@ def parse_size(size: str | int | float):
         "u": 1e-6,
         "m": 1e-3,
         "k": 1e3,
-        "K": 1e3,
         "M": 1e6,
         "G": 1e9,
     }

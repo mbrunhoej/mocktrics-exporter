@@ -5,7 +5,7 @@ import uvicorn
 from prometheus_client import start_http_server
 
 from mocktrics_exporter.api import api
-from mocktrics_exporter.arguments import arguments
+from mocktrics_exporter.arguments import arguments, parse_arguments
 from mocktrics_exporter.metrics import metrics
 
 logging.basicConfig(
@@ -15,6 +15,9 @@ logging.basicConfig(
 
 
 def main() -> None:
+
+    parse_arguments()
+
     start_http_server(arguments.metrics_port)
     metrics.start_collecting()
 
