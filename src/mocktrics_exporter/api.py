@@ -63,7 +63,6 @@ async def post_metric(metric: configuration.Metric) -> JSONResponse:
                 metric.documentation,
                 metric.labels,
                 metric.unit,
-                read_only=False,
             )
         )
         return JSONResponse(
@@ -80,11 +79,6 @@ def post_metric_value(id: str, value: valueModels.MetricValue) -> JSONResponse:
 
     try:
         metric = metrics.metrics.get_metric(id)
-        if metric.read_only:
-            return JSONResponse(
-                status_code=403,
-                content={"success": False, "error": "Metric is read-only"},
-            )
         metric.add_value(value)
     except AttributeError:
         return JSONResponse(

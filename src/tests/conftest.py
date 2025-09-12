@@ -17,5 +17,4 @@ def base_metric():
         "documentation": "documentation example",
         "labels": "test_label",
         "unit": "meter_per_seconds",
-        "read_only": False,
     }

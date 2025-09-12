@@ -1,6 +1,7 @@
 import pytest
 
 from mocktrics_exporter.metrics import Metric
+from mocktrics_exporter.valueModels import StaticValue
 
 
 @pytest.mark.parametrize(
@@ -24,11 +25,6 @@ def test_metric_name_validation(base_metric, name, should_raise):
     else:
         obj = Metric(**m)
         assert obj.name == name
-
-
-# def test_init_values(metric_arguments):
-#     pass
-#
 
 
 @pytest.mark.parametrize(
@@ -96,6 +92,19 @@ def test_metric_unit_validation(base_metric, unit, should_raise):
         assert obj.unit == unit
 
 
-#
-# def test_init_read_only():
-#     pass
+@pytest.mark.parametrize(
+    "values, should_raise",
+    [
+        ([], None),
+        ([StaticValue(value=0.0, labels=["example"])], None),
+        ([StaticValue(value=0.0, labels=["example"])] * 100, None),
+    ],
+)
+def test_init_values(base_metric, values, should_raise):
+    m = {**base_metric, "values": values}
+    if should_raise is not None:
+        with pytest.raises(should_raise):
+            Metric(**m)
+    else:
+        obj = Metric(**m)
+        assert obj.values == values

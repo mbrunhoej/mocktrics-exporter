@@ -39,9 +39,9 @@ def parse_size(size: str | int | float):
 
 
 class StaticValue(pydantic.BaseModel):
-    kind: Literal["static"]
     value: float
     labels: list[str]
+    kind: Literal["static"] = "static"
 
     @pydantic.field_validator("value", mode="before")
     def convert_value(cls, v):

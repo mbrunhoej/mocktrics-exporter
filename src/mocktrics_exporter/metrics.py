@@ -18,7 +18,6 @@ class Metric:
         documentation: str = "",
         labels: list[str] = [],
         unit: str = "",
-        read_only: bool = False,
     ) -> None:
 
         self.validate_name(name)
@@ -29,7 +28,6 @@ class Metric:
         self.labels = labels
         self.validate_unit(unit)
         self.unit = unit
-        self._read_only = read_only
 
         self.values = values
 
@@ -78,8 +76,6 @@ class Metric:
                 raise ValueError("Metric unit must only contain _, a-z or A-Z")
 
     def set_value(self) -> None:
-        if self.read_only:
-            raise AttributeError("Metric is read only")
         for value in self.values:
             self._metric.labels(*value.labels).set(value.get_value())
 
@@ -93,10 +89,6 @@ class Metric:
 
         self.values.append(value)
 
-    @property
-    def read_only(self) -> bool:
-        return self._read_only
-
     class MetricCreationException(Exception):
         pass
 
@@ -106,7 +98,6 @@ class Metric:
             "documentation": self.documentation,
             "unit": self.unit,
             "labels": self.labels,
-            "read_only": self.read_only,
             "values": [value.model_dump() for value in self.values],
         }
 
@@ -119,7 +110,7 @@ class _Metrics:
         self._wake_event = threading.Event()
         self._collect_interval: int = configuration.configuration.collect_interval
 
-    def add_metric(self, metric: Metric, read_only: bool = False) -> str:
+    def add_metric(self, metric: Metric) -> str:
         id = metric.name
         self._metrics.update({id: metric})
         return id
@@ -131,9 +122,7 @@ class _Metrics:
         return self._metrics[name]
 
     def delete_metric(self, id: str) -> None:
-        metric = self._metrics[id]
-        if metric.read_only:
-            raise AttributeError
+        self._metrics[id]
         self._metrics.pop(id)
 
     def collect(self) -> None:
@@ -194,6 +183,5 @@ for metric in configuration.configuration.metrics:
             metric.documentation,
             metric.labels,
             metric.unit,
-            read_only=True,
         )
     )

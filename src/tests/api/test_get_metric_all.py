@@ -1,6 +1,5 @@
 import pytest
 from fastapi.testclient import TestClient
-from prometheus_client import CollectorRegistry, core
 
 from mocktrics_exporter import api, metrics, valueModels
 
@@ -9,20 +8,6 @@ from mocktrics_exporter import api, metrics, valueModels
 def client():
     with TestClient(api.api) as client:
         yield client
-
-
-@pytest.fixture(scope="function", autouse=True)
-def cleanup():
-    yield
-    delete = []
-    for name, metric in metrics.metrics.get_metrics().items():
-        if not metric.read_only:
-            delete.append(name)
-
-    for name in delete:
-        metrics.metrics.delete_metric(name)
-
-    core.REGISTRY = CollectorRegistry()
 
 
 def test_get_value_all(client: TestClient):
