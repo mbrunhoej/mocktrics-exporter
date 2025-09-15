@@ -110,3 +110,25 @@ def test_init_values(base_metric, values, should_raise):
     else:
         obj = Metric(**m)
         assert obj.values == values
+
+
+@pytest.mark.parametrize(
+    "values, should_raise",
+    [
+        ([], None),
+        ([StaticValue(value=0.0, labels=["a"])], None),
+        ([StaticValue(value=0.0, labels=["a"])] * 2, Metric.DuplicateValueLabelsetException),
+        ([StaticValue(value=0.0, labels=[])], Metric.ValueLabelsetSizeException),
+        ([StaticValue(value=0.0, labels=["a", "b"])], Metric.ValueLabelsetSizeException),
+    ],
+)
+def test_add_value(base_metric, values, should_raise):
+    metric = Metric(**base_metric)
+    if should_raise is not None:
+        with pytest.raises(should_raise):
+            for value in values:
+                metric.add_value(value)
+    else:
+        for value in values:
+            metric.add_value(value)
+        assert metric.values == values
