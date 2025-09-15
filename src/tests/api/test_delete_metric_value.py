@@ -13,7 +13,7 @@ def client():
 def test_metric_delete_value(client: TestClient):
 
     metric = metrics.Metric(
-        name="test_metric_delete_value",
+        name="test",
         labels=["type"],
         documentation="documentation for test metric",
         values=[
@@ -25,24 +25,22 @@ def test_metric_delete_value(client: TestClient):
 
     metrics.metrics.add_metric(metric)
 
-    metric_count = len(metrics.metrics.get_metrics())
-
     response = client.delete(
-        "/metric/test_metric_delete_value/value?labels=static",
+        "/metric/test/value?labels=static",
         headers={
             "accept": "application/json",
         },
     )
 
     assert response.status_code == 200
-    assert len(metrics.metrics.get_metrics()) == metric_count
+    assert len(metrics.metrics.get_metrics()) == 1
     assert len(metric.values) == 0
 
 
 def test_mismatching_labels_length(client: TestClient):
 
     metric = metrics.Metric(
-        name="test_mismatching_labels_length",
+        name="test",
         labels=["type"],
         documentation="documentation for test metric",
         values=[
@@ -54,24 +52,22 @@ def test_mismatching_labels_length(client: TestClient):
 
     metrics.metrics.add_metric(metric)
 
-    metric_count = len(metrics.metrics.get_metrics())
-
     response = client.delete(
-        "/metric/test_mismatching_labels_length/value?labels=static&labels=nonexisting",
+        "/metric/test/value?labels=static&labels=nonexisting",
         headers={
             "accept": "application/json",
         },
     )
 
     assert response.status_code == 419
-    assert len(metrics.metrics.get_metrics()) == metric_count
+    assert len(metrics.metrics.get_metrics()) == 1
     assert len(metric.values) == 1
 
 
 def test_delete_mismatching_labels(client: TestClient):
 
     metric = metrics.Metric(
-        name="test_delete_mismatching_labels",
+        name="test",
         labels=["type"],
         documentation="documentation for test metric",
         values=[
@@ -83,30 +79,26 @@ def test_delete_mismatching_labels(client: TestClient):
 
     metrics.metrics.add_metric(metric)
 
-    metric_count = len(metrics.metrics.get_metrics())
-
     response = client.delete(
-        "/metric/test_delete_mismatching_labels/value?labels=wronglabel",
+        "/metric/test/value?labels=wronglabel",
         headers={
             "accept": "application/json",
         },
     )
 
     assert response.status_code == 404
-    assert len(metrics.metrics.get_metrics()) == metric_count
+    assert len(metrics.metrics.get_metrics()) == 1
     assert len(metric.values) == 1
 
 
 def test_delete_nonexisting_metric(client: TestClient):
 
-    metric_count = len(metrics.metrics.get_metrics())
-
     response = client.delete(
-        "/metric/test_delete_nonexisting_metric/value?labels=static",
+        "/metric/test/value?labels=static",
         headers={
             "accept": "application/json",
         },
     )
 
     assert response.status_code == 404
-    assert len(metrics.metrics.get_metrics()) == metric_count
+    assert len(metrics.metrics.get_metrics()) == 0

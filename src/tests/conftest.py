@@ -5,8 +5,13 @@ import mocktrics_exporter
 
 
 @pytest.fixture(autouse=True, scope="function")
-def registry(monkeypatch):
+def registry(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(mocktrics_exporter.metrics.Metric, "_registry", CollectorRegistry())
+
+
+@pytest.fixture(autouse=True, scope="function")
+def clear_metrics(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setattr(mocktrics_exporter.metrics.metrics, "_metrics", {})
 
 
 @pytest.fixture
@@ -15,6 +20,6 @@ def base_metric():
         "name": "metric",
         "values": [],
         "documentation": "documentation example",
-        "labels": "test_label",
+        "labels": ["test_label"],
         "unit": "meter_per_seconds",
     }

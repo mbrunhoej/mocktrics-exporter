@@ -11,7 +11,6 @@ def client():
 
 
 def test_metric_single_value(client: TestClient):
-    metric_count = len(metrics.metrics.get_metrics())
 
     response = client.post(
         "/metric",
@@ -19,7 +18,7 @@ def test_metric_single_value(client: TestClient):
             "accept": "application/json",
         },
         json={
-            "name": "test_metric_single_value",
+            "name": "test",
             "documentation": "documentation for test metric",
             "unit": "",
             "labels": ["type"],
@@ -27,13 +26,12 @@ def test_metric_single_value(client: TestClient):
         },
     )
     assert response.status_code == 201
-    assert len(metrics.metrics.get_metrics()) == metric_count + 1
-    metric = metrics.metrics.get_metric("test_metric_single_value")
+    assert len(metrics.metrics.get_metrics()) == 1
+    metric = metrics.metrics.get_metric("test")
     assert len(metric.values) == 1
 
 
 def test_metric_multiple_value(client: TestClient):
-    metric_count = len(metrics.metrics.get_metrics())
 
     response = client.post(
         "/metric",
@@ -41,7 +39,7 @@ def test_metric_multiple_value(client: TestClient):
             "accept": "application/json",
         },
         json={
-            "name": "test_metric_multiple_value",
+            "name": "test",
             "documentation": "documentation for test metric",
             "unit": "",
             "labels": ["type"],
@@ -58,13 +56,12 @@ def test_metric_multiple_value(client: TestClient):
         },
     )
     assert response.status_code == 201
-    assert len(metrics.metrics.get_metrics()) == metric_count + 1
-    metric = metrics.metrics.get_metric("test_metric_multiple_value")
+    assert len(metrics.metrics.get_metrics()) == 1
+    metric = metrics.metrics.get_metric("test")
     assert len(metric.values) == 2
 
 
 def test_metric_no_value(client: TestClient):
-    metric_count = len(metrics.metrics.get_metrics())
 
     response = client.post(
         "/metric",
@@ -72,7 +69,7 @@ def test_metric_no_value(client: TestClient):
             "accept": "application/json",
         },
         json={
-            "name": "test_metric_no_value",
+            "name": "test",
             "documentation": "documentation for test metric",
             "unit": "",
             "labels": ["type"],
@@ -80,13 +77,12 @@ def test_metric_no_value(client: TestClient):
         },
     )
     assert response.status_code == 201
-    assert len(metrics.metrics.get_metrics()) == metric_count + 1
-    metric = metrics.metrics.get_metric("test_metric_no_value")
+    assert len(metrics.metrics.get_metrics()) == 1
+    metric = metrics.metrics.get_metric("test")
     assert len(metric.values) == 0
 
 
 def test_metric_duplicate_value(client: TestClient):
-    metric_count = len(metrics.metrics.get_metrics())
 
     client.post(
         "/metric",
@@ -94,7 +90,7 @@ def test_metric_duplicate_value(client: TestClient):
             "accept": "application/json",
         },
         json={
-            "name": "test_metric_duplicate_value",
+            "name": "test",
             "documentation": "documentation for test metric",
             "unit": "",
             "labels": ["type"],
@@ -108,7 +104,7 @@ def test_metric_duplicate_value(client: TestClient):
             "accept": "application/json",
         },
         json={
-            "name": "test_metric_duplicate_value",
+            "name": "test",
             "documentation": "documentation for test metric",
             "unit": "",
             "labels": ["type"],
@@ -116,4 +112,4 @@ def test_metric_duplicate_value(client: TestClient):
         },
     )
     assert response.status_code == 409
-    assert len(metrics.metrics.get_metrics()) == metric_count + 1
+    assert len(metrics.metrics.get_metrics()) == 1

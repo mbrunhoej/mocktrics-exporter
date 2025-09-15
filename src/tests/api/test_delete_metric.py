@@ -13,7 +13,7 @@ def client():
 def test_delete_metric(client: TestClient):
 
     metric = metrics.Metric(
-        name="test_delete_metric",
+        name="test",
         labels=["type"],
         documentation="documentation for test metric",
         values=[],
@@ -21,29 +21,25 @@ def test_delete_metric(client: TestClient):
 
     metrics.metrics.add_metric(metric)
 
-    metric_count = len(metrics.metrics.get_metrics())
-
     response = client.delete(
-        "/metric/test_delete_metric",
+        "/metric/test",
         headers={
             "accept": "application/json",
         },
     )
 
     assert response.status_code == 200
-    assert len(metrics.metrics.get_metrics()) == metric_count - 1
+    assert len(metrics.metrics.get_metrics()) == 0
 
 
 def test_delete_metric_nonexisting(client: TestClient):
 
-    metric_count = len(metrics.metrics.get_metrics())
-
     response = client.delete(
-        "/metric/test_delete_metric_nonexisting",
+        "/metric/test",
         headers={
             "accept": "application/json",
         },
     )
 
     assert response.status_code == 404
-    assert len(metrics.metrics.get_metrics()) == metric_count
+    assert len(metrics.metrics.get_metrics()) == 0

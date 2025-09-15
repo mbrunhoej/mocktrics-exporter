@@ -1,6 +1,7 @@
 import re
 import threading
 import time
+from copy import copy
 
 from prometheus_client import REGISTRY, Gauge
 
@@ -29,6 +30,7 @@ class Metric:
         self.validate_unit(unit)
         self.unit = unit
 
+        self.validate_values(values)
         self.values = values
 
         self._metric = Gauge(
@@ -75,19 +77,36 @@ class Metric:
             if pattern.match(unit) is None:
                 raise ValueError("Metric unit must only contain _, a-z or A-Z")
 
+    def validate_values(self, values: list[valueModels.MetricValue]):
+        v = []
+        for value in values:
+            s = set(value.labels)
+            if s in v:
+                raise self.DuplicateValueLabelsetException(
+                    "Matric values can not have duplicate labels"
+                )
+            v.append(s)
+        for value in values:
+            if len(self.labels) != len(value.labels):
+                raise self.ValueLabelsetSizeException(
+                    "Value label count must match metric label count"
+                )
+
     def set_value(self) -> None:
         for value in self.values:
             self._metric.labels(*value.labels).set(value.get_value())
 
     def add_value(self, value: valueModels.MetricValue) -> None:
-        if len(self.labels) != len(value.labels):
-            raise AttributeError("Mismatching label count")
-
-        for val in self.values:
-            if all(label in value.labels for label in val.labels):
-                raise IndexError("Duplicate labels")
-
+        v = copy(self.values)
+        v.append(value)
+        self.validate_values(v)
         self.values.append(value)
+
+    class DuplicateValueLabelsetException(Exception):
+        pass
+
+    class ValueLabelsetSizeException(Exception):
+        pass
 
     class MetricCreationException(Exception):
         pass

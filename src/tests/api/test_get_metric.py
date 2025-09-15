@@ -13,7 +13,7 @@ def client():
 def test_get_metric(client: TestClient):
 
     metric = metrics.Metric(
-        name="test_get_metric",
+        name="test",
         labels=["type"],
         documentation="documentation for test metric",
         values=[],
@@ -22,7 +22,7 @@ def test_get_metric(client: TestClient):
     metrics.metrics.add_metric(metric)
 
     response = client.get(
-        "/metric/test_get_metric",
+        "/metric/test",
         headers={
             "accept": "application/json",
         },
@@ -33,7 +33,7 @@ def test_get_metric(client: TestClient):
 def test_metric_nonexisting(client: TestClient):
 
     response = client.get(
-        "/metric/test_metric_nonexisting",
+        "/metric/test",
         headers={
             "accept": "application/json",
         },

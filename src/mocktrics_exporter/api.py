@@ -80,7 +80,7 @@ def post_metric_value(id: str, value: valueModels.MetricValue) -> JSONResponse:
     try:
         metric = metrics.metrics.get_metric(id)
         metric.add_value(value)
-    except AttributeError:
+    except metrics.Metric.ValueLabelsetSizeException:
         return JSONResponse(
             status_code=419,
             content={
@@ -88,7 +88,7 @@ def post_metric_value(id: str, value: valueModels.MetricValue) -> JSONResponse:
                 "error": "Value label count does not match metric label count",
             },
         )
-    except IndexError:
+    except metrics.Metric.DuplicateValueLabelsetException:
         return JSONResponse(
             status_code=409,
             content={

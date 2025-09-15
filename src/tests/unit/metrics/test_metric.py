@@ -96,8 +96,10 @@ def test_metric_unit_validation(base_metric, unit, should_raise):
     "values, should_raise",
     [
         ([], None),
-        ([StaticValue(value=0.0, labels=["example"])], None),
-        ([StaticValue(value=0.0, labels=["example"])] * 100, None),
+        ([StaticValue(value=0.0, labels=["a"])], None),
+        ([StaticValue(value=0.0, labels=["a"])] * 2, Metric.DuplicateValueLabelsetException),
+        ([StaticValue(value=0.0, labels=[])], Metric.ValueLabelsetSizeException),
+        ([StaticValue(value=0.0, labels=["a", "b"])], Metric.ValueLabelsetSizeException),
     ],
 )
 def test_init_values(base_metric, values, should_raise):
