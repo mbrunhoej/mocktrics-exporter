@@ -1,9 +1,9 @@
 import re
 import threading
-import time
 from copy import copy
 
-from prometheus_client import REGISTRY, Gauge
+from prometheus_client import REGISTRY
+from prometheus_client.core import GaugeMetricFamily
 
 from mocktrics_exporter import configuration, valueModels
 
@@ -33,13 +33,33 @@ class Metric:
         self.validate_values(values)
         self.values = values
 
-        self._metric = Gauge(
-            self.name,
-            documentation=self.documentation,
-            labelnames=labels,
-            unit=unit if not configuration.configuration.disable_units else "",
-            registry=self._registry,
-        )
+        self._collector = self.collector_factory()
+
+        self._registry.register(self._collector)
+
+    def collector_factory(self) -> "Collector":
+
+        metric = self
+
+        class Collector:
+
+            def collect(self):
+
+                c = GaugeMetricFamily(
+                    metric.name,
+                    metric.documentation,
+                    None,
+                    metric.labels,
+                    metric.unit if not configuration.configuration.disable_units else "",
+                )
+
+                for value in metric.values:
+
+                    c.add_metric(value.labels, value.get_value())
+
+                yield c
+
+        return Collector()
 
     @staticmethod
     def validate_name(name: str):
@@ -127,7 +147,6 @@ class _Metrics:
         self._metrics: dict[str, Metric] = {}
         self._run = False
         self._wake_event = threading.Event()
-        self._collect_interval: int = configuration.configuration.collect_interval
 
     def add_metric(self, metric: Metric) -> str:
         id = metric.name
@@ -143,52 +162,6 @@ class _Metrics:
     def delete_metric(self, id: str) -> None:
         self._metrics[id]
         self._metrics.pop(id)
-
-    def collect(self) -> None:
-        for metric in self._metrics.values():
-            metric.set_value()
-
-    def start_collecting(
-        self,
-    ) -> None:
-
-        def _tf() -> None:
-
-            self._run = True
-            next_run = time.monotonic()
-            while True:
-
-                self.collect()
-
-                next_run += self._collect_interval
-                sleep_time = next_run - time.monotonic()
-                if sleep_time > 0:
-                    awakened = self._wake_event.wait(timeout=sleep_time)
-                    if awakened:
-                        self._wake_event.clear()
-                        next_run = time.monotonic()
-                        continue
-                else:
-                    next_run = time.monotonic()
-
-                if not self._run:
-                    break
-
-        thread = threading.Thread(target=_tf, daemon=True)
-        thread.start()
-
-    def stop_collecting(self) -> None:
-        self._run = False
-
-    def wake(self) -> None:
-        self._wake_event.set()
-
-    def get_collect_interval(self) -> int:
-        return int(self._collect_interval)
-
-    def set_collect_interval(self, seconds: int) -> None:
-        self._collect_interval = int(seconds)
-        self.wake()
 
 
 metrics = _Metrics()

@@ -6,37 +6,6 @@ from mocktrics_exporter import configuration, metrics, valueModels
 api = FastAPI(redirect_slashes=False)
 
 
-@api.get("/collect-interval")
-async def get_collect_interval() -> JSONResponse:
-    return JSONResponse(
-        content={
-            "seconds": metrics.metrics.get_collect_interval(),
-            "editable": not configuration.configuration.collect_interval_is_read_only(),
-        }
-    )
-
-
-@api.post("/collect-interval/{interval}")
-async def set_collect_interval(interval: str) -> JSONResponse:
-    editable = not configuration.configuration.collect_interval_is_read_only()
-    if not editable:
-        return JSONResponse(
-            status_code=403,
-            content={
-                "success": False,
-                "error": "Configured in config.yaml (read-only)",
-            },
-        )
-    try:
-        seconds = valueModels.parse_duration(int(interval) if interval.isdigit() else interval)
-        if seconds < 1 or seconds > 60 * 60:
-            raise ValueError("Interval must be between 1 and 300 seconds")
-        metrics.metrics.set_collect_interval(seconds)
-        return JSONResponse(content={"success": True})
-    except Exception as e:
-        return JSONResponse(status_code=400, content={"success": False, "error": str(e)})
-
-
 @api.post("/metric")
 async def post_metric(metric: configuration.Metric) -> JSONResponse:
 
