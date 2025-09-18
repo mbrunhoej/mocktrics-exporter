@@ -1,8 +1,8 @@
 import re
-import threading
 from copy import copy
+from typing import cast
 
-from prometheus_client import REGISTRY
+from prometheus_client import REGISTRY, registry
 from prometheus_client.core import GaugeMetricFamily
 
 from mocktrics_exporter import configuration, valueModels
@@ -33,33 +33,9 @@ class Metric:
         self.validate_values(values)
         self.values = values
 
-        self._collector = self.collector_factory()
+        self._collector = self.Collector(self)
 
-        self._registry.register(self._collector)
-
-    def collector_factory(self) -> "Collector":
-
-        metric = self
-
-        class Collector:
-
-            def collect(self):
-
-                c = GaugeMetricFamily(
-                    metric.name,
-                    metric.documentation,
-                    None,
-                    metric.labels,
-                    metric.unit if not configuration.configuration.disable_units else "",
-                )
-
-                for value in metric.values:
-
-                    c.add_metric(value.labels, value.get_value())
-
-                yield c
-
-        return Collector()
+        self._registry.register(cast(registry.Collector, self._collector))
 
     @staticmethod
     def validate_name(name: str):
@@ -112,10 +88,6 @@ class Metric:
                     "Value label count must match metric label count"
                 )
 
-    def set_value(self) -> None:
-        for value in self.values:
-            self._metric.labels(*value.labels).set(value.get_value())
-
     def add_value(self, value: valueModels.MetricValue) -> None:
         v = copy(self.values)
         v.append(value)
@@ -140,13 +112,34 @@ class Metric:
             "values": [value.model_dump() for value in self.values],
         }
 
+    class Collector:
+
+        _metricFamily = GaugeMetricFamily
+
+        def __init__(self, metric: "Metric"):
+            self._metric = metric
+
+        def collect(self):
+
+            c = self._metricFamily(
+                self._metric.name,
+                self._metric.documentation,
+                None,
+                self._metric.labels,
+                self._metric.unit if not configuration.configuration.disable_units else "",
+            )
+
+            for value in self._metric.values:
+
+                c.add_metric(value.labels, value.get_value())
+
+            yield c
+
 
 class _Metrics:
 
     def __init__(self):
         self._metrics: dict[str, Metric] = {}
-        self._run = False
-        self._wake_event = threading.Event()
 
     def add_metric(self, metric: Metric) -> str:
         id = metric.name

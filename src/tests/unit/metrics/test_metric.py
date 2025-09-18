@@ -1,5 +1,6 @@
 import pytest
 
+import mocktrics_exporter
 from mocktrics_exporter.metrics import Metric
 from mocktrics_exporter.valueModels import StaticValue
 
@@ -38,7 +39,7 @@ def test_metric_name_validation(base_metric, name, should_raise):
         ("test\ninit\nname", ValueError),
     ],
 )
-def test_metric_documentation_validation(base_metric, registry, documentation, should_raise):
+def test_metric_documentation_validation(base_metric, documentation, should_raise):
     m = {**base_metric, "documentation": documentation}
     if should_raise is not None:
         with pytest.raises(should_raise):
@@ -132,3 +133,38 @@ def test_add_value(base_metric, values, should_raise):
         for value in values:
             metric.add_value(value)
         assert metric.values == values
+
+
+class MetricFamilyMock:
+
+    def __init__(self, name: str, documentation: str, value: None, labels: list[str], unit: str):
+        self.name = name
+        self.documentation = documentation
+        self.labels = labels
+        self.unit = unit
+
+        self.collected_values: list[dict] = []
+
+    def add_metric(self, labels: list[str], value: float) -> None:
+        self.collected_values.append({"labels": labels, "value": value})
+
+
+@pytest.fixture(scope="function")
+def metric_family_mock(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setattr(
+        mocktrics_exporter.metrics.Metric.Collector, "_metricFamily", MetricFamilyMock
+    )
+
+
+def test_collector(metric_family_mock, base_metric):
+    base_metric.update({"values": [StaticValue(value=100.0, labels=["test"])]})
+    metric = Metric(**base_metric)
+    collector = metric.Collector(metric)
+
+    metric_family = next(collector.collect())
+
+    assert metric_family.name == base_metric["name"]
+    assert metric_family.documentation == base_metric["documentation"]
+    assert metric_family.labels == base_metric["labels"]
+    assert metric_family.unit == base_metric["unit"]
+    assert metric_family.collected_values == [{"labels": ["test"], "value": 100.0}]

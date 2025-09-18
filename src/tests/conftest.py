@@ -5,7 +5,7 @@ import mocktrics_exporter
 
 
 @pytest.fixture(autouse=True, scope="function")
-def registry(monkeypatch: pytest.MonkeyPatch):
+def registry_mock(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(mocktrics_exporter.metrics.Metric, "_registry", CollectorRegistry())
 
 
