@@ -6,8 +6,9 @@ from mocktrics_exporter.valueModels import parse_duration
 @pytest.mark.parametrize(
     "value, result, should_raise",
     [
-        (0, 0, None),
+        (1, 1, None),
         (10, 10, None),
+        (0, 0, ValueError),
         (-1, None, ValueError),
         ("2s", 2, None),
         ("2m", 60 * 2, None),

@@ -9,8 +9,8 @@ import pydantic
 
 def parse_duration(duration: str | int):
     if isinstance(duration, int):
-        if duration < 0:
-            raise ValueError("Duration must be positive")
+        if duration < 1:
+            raise ValueError("Duration must be atlest 1")
         return duration
     match = re.fullmatch(r"(\d+)([smhd])", duration.strip().lower())
     if not match:
@@ -52,13 +52,13 @@ class StaticValue(pydantic.BaseModel):
 
 
 class RampValue(pydantic.BaseModel):
-    kind: Literal["ramp"]
+    kind: Literal["ramp"] = "ramp"
     period: int
     peak: int
     offset: int = 0
     invert: bool = False
     labels: list[str]
-    __start_time: float = time.monotonic()
+    _start_time: float = pydantic.PrivateAttr(default_factory=lambda: time.monotonic())
 
     @pydantic.field_validator("period", mode="before")
     def convert_period(cls, v):
@@ -66,14 +66,14 @@ class RampValue(pydantic.BaseModel):
 
     @pydantic.field_validator("peak", mode="before")
     def convert_peak(cls, v):
-        return parse_size(v)
+        return int(parse_size(v))
 
     @pydantic.field_validator("offset", mode="before")
     def convert_offset(cls, v):
-        return parse_size(v)
+        return int(parse_size(v))
 
     def get_value(self) -> float:
-        delta = time.monotonic() - self.__start_time
+        delta = time.monotonic() - self._start_time
         progress = (delta % self.period) / self.period
         value = progress * self.peak
         if self.invert:
