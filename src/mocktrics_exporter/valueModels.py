@@ -151,7 +151,7 @@ class SineValue(pydantic.BaseModel):
 
 
 class GaussianValue(pydantic.BaseModel):
-    kind: Literal["gaussian"]
+    kind: Literal["gaussian"] = "gaussian"
     mean: int
     sigma: float
     labels: list[str]
