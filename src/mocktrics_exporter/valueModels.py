@@ -122,12 +122,12 @@ class SquareValue(pydantic.BaseModel):
 
 
 class SineValue(pydantic.BaseModel):
-    kind: Literal["sine"]
+    kind: Literal["sine"] = "sine"
     period: int
     amplitude: int
     offset: int = 0
     labels: list[str]
-    __start_time: float = time.monotonic()
+    __start_time: float = pydantic.PrivateAttr(default_factory=lambda: time.monotonic())
 
     @pydantic.field_validator("period", mode="before")
     def convert_period(cls, v):
