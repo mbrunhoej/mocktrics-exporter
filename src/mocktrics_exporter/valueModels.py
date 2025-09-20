@@ -83,38 +83,38 @@ class RampValue(pydantic.BaseModel):
 
 
 class SquareValue(pydantic.BaseModel):
-    kind: Literal["square"]
+    kind: Literal["square"] = "square"
     period: int
     magnitude: int
     offset: int = 0
     duty_cycle: float
     invert: bool = False
     labels: list[str]
-    __start_time: float = time.monotonic()
+    _start_time: float = pydantic.PrivateAttr(default_factory=lambda: time.monotonic())
 
     @pydantic.field_validator("period", mode="before")
     def convert_period(cls, v):
-        return parse_duration(v)
+        return int(parse_duration(v))
 
     @pydantic.field_validator("magnitude", mode="before")
     def convert_magnitude(cls, v):
-        return parse_size(v)
+        return int(parse_size(v))
 
     @pydantic.field_validator("offset", mode="before")
     def convert_offset(cls, v):
-        return parse_size(v)
+        return int(parse_size(v))
 
     @pydantic.field_validator("duty_cycle", mode="before")
     def validate_duty_cycle(cls, v):
-        if v < 0 or v > 100:
-            raise Exception("Duty cycle must be between 0 and 100")
+        if v < 0.0 or v > 100.0:
+            raise ValueError("Duty cycle must be between 0 and 100")
         return float(v) / 100
 
     def get_value(self) -> float:
-        delta = time.monotonic() - self.__start_time
+        delta = time.monotonic() - self._start_time
         progress = (delta % self.period) / self.period
         if not self.invert:
-            value = self.magnitude if progress < self.duty_cycle else 0
+            value = self.magnitude if progress <= self.duty_cycle else 0
         else:
             value = 0 if progress < self.duty_cycle else self.magnitude
 

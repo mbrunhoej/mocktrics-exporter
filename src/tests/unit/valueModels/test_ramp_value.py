@@ -36,7 +36,6 @@ def test_ramp_value(monkeypatch, period, peak, offset, invert):
 
     for i in range(1, period):
         progress = (i / period) % period
-        print(progress)
         if invert:
             progress = 1 - progress
 
