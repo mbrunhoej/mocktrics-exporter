@@ -75,4 +75,4 @@ def test_sine_value_size_validator(monkeypatch):
 def test_static_value_kind():
     SineValue(period=10, amplitude=10, labels=[], kind="sine")
     with pytest.raises(pydantic.ValidationError):
-        SineValue(period=10, amplitude=10, labels=[], kind="test")
+        SineValue(period=10, amplitude=10, labels=[], kind="test")  # type: ignore[arg-type]

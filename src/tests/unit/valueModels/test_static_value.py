@@ -29,4 +29,4 @@ def test_static_value_validator(monkeypatch):
 def test_static_value_kind():
     StaticValue(labels=[], value=0.0, kind="static")
     with pytest.raises(pydantic.ValidationError):
-        StaticValue(labels=[], value=0.0, kind="test")
+        StaticValue(labels=[], value=0.0, kind="test")  # type: ignore[arg-type]

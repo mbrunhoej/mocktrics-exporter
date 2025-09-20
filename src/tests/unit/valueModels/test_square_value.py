@@ -109,4 +109,4 @@ def test_square_value_duty_cycle_validator(duty_cycle, should_raise):
 def test_static_value_kind():
     SquareValue(period=10, magnitude=10, duty_cycle=50.0, labels=[], kind="square")
     with pytest.raises(pydantic.ValidationError):
-        SquareValue(period=10, magnitude=10, duty_cycle=50.0, labels=[], kind="test")
+        SquareValue(period=10, magnitude=10, duty_cycle=50.0, labels=[], kind="test")  # type: ignore[arg-type]

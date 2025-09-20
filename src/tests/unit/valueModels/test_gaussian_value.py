@@ -31,4 +31,4 @@ def test_gaussian_value_labels(labels):
 def test_static_value_kind():
     GaussianValue(mean=0, sigma=1.0, labels=[], kind="gaussian")
     with pytest.raises(pydantic.ValidationError):
-        GaussianValue(mean=0, sigma=1.0, labels=[], kind="test")
+        GaussianValue(mean=0, sigma=1.0, labels=[], kind="test")  # type: ignore[arg-type]

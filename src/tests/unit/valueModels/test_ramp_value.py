@@ -77,4 +77,4 @@ def test_ramp_value_size_validator(monkeypatch):
 def test_static_value_kind():
     RampValue(period=10, peak=10, labels=[], kind="ramp")
     with pytest.raises(pydantic.ValidationError):
-        RampValue(period=10, peak=10, labels=[], kind="test")
+        RampValue(period=10, peak=10, labels=[], kind="test")  # type: ignore[arg-type]
