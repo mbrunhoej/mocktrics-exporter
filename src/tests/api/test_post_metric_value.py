@@ -1,8 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
-from prometheus_client import CollectorRegistry, core
 
-from mocktrics_exporter import api, metrics
+from mocktrics_exporter import api, metricCollection, metrics
 
 
 @pytest.fixture(scope="function", autouse=True)
@@ -11,35 +10,19 @@ def client():
         yield client
 
 
-@pytest.fixture(scope="function", autouse=True)
-def cleanup():
-    yield
-    delete = []
-    for name, metric in metrics.metrics.get_metrics().items():
-        if not metric.read_only:
-            delete.append(name)
-
-    for name in delete:
-        metrics.metrics.delete_metric(name)
-
-    core.REGISTRY = CollectorRegistry()
-
-
 def test_metric_add_value(client: TestClient):
 
     metric = metrics.Metric(
-        name="test_metric_add_single_value",
+        name="test",
         labels=["type"],
         documentation="documentation for test metric",
         values=[],
     )
 
-    metrics.metrics.add_metric(metric)
-
-    metric_count = len(metrics.metrics.get_metrics())
+    metricCollection.metrics.add_metric(metric)
 
     response = client.post(
-        "/metric/test_metric_add_single_value/value",
+        "/metric/test/value",
         headers={
             "accept": "application/json",
         },
@@ -47,32 +30,30 @@ def test_metric_add_value(client: TestClient):
     )
 
     assert response.status_code == 201
-    assert len(metrics.metrics.get_metrics()) == metric_count
+    assert len(metricCollection.metrics.get_metrics()) == 1
     assert len(metric.values) == 1
 
 
 def test_metric_add_multiple_values(client: TestClient):
 
     metric = metrics.Metric(
-        name="test_metric_add_multiple_values",
+        name="test",
         labels=["type"],
         documentation="documentation for test metric",
         values=[],
     )
 
-    metrics.metrics.add_metric(metric)
-
-    metric_count = len(metrics.metrics.get_metrics())
+    metricCollection.metrics.add_metric(metric)
 
     response = client.post(
-        "/metric/test_metric_add_multiple_values/value",
+        "/metric/test/value",
         headers={
             "accept": "application/json",
         },
         json={"kind": "static", "labels": ["static"], "value": 0},
     )
     response = client.post(
-        "/metric/test_metric_add_multiple_values/value",
+        "/metric/test/value",
         headers={
             "accept": "application/json",
         },
@@ -85,25 +66,23 @@ def test_metric_add_multiple_values(client: TestClient):
         },
     )
     assert response.status_code == 201
-    assert len(metrics.metrics.get_metrics()) == metric_count
+    assert len(metricCollection.metrics.get_metrics()) == 1
     assert len(metric.values) == 2
 
 
 def test_mismatching_labels(client: TestClient):
 
     metric = metrics.Metric(
-        name="test_mismatching_labels",
+        name="test",
         labels=["type"],
         documentation="documentation for test metric",
         values=[],
     )
 
-    metrics.metrics.add_metric(metric)
-
-    metric_count = len(metrics.metrics.get_metrics())
+    metricCollection.metrics.add_metric(metric)
 
     response = client.post(
-        "/metric/test_mismatching_labels/value",
+        "/metric/test/value",
         headers={
             "accept": "application/json",
         },
@@ -111,32 +90,30 @@ def test_mismatching_labels(client: TestClient):
     )
 
     assert response.status_code == 419
-    assert len(metrics.metrics.get_metrics()) == metric_count
+    assert len(metricCollection.metrics.get_metrics()) == 1
     assert len(metric.values) == 0
 
 
 def test_duplicate_labels(client: TestClient):
 
     metric = metrics.Metric(
-        name="test_duplicate_labels",
+        name="test",
         labels=["type"],
         documentation="documentation for test metric",
         values=[],
     )
 
-    metrics.metrics.add_metric(metric)
-
-    metric_count = len(metrics.metrics.get_metrics())
+    metricCollection.metrics.add_metric(metric)
 
     client.post(
-        "/metric/test_duplicate_labels/value",
+        "/metric/test/value",
         headers={
             "accept": "application/json",
         },
         json={"kind": "static", "labels": ["static"], "value": 0},
     )
     response = client.post(
-        "/metric/test_duplicate_labels/value",
+        "/metric/test/value",
         headers={
             "accept": "application/json",
         },
@@ -144,16 +121,14 @@ def test_duplicate_labels(client: TestClient):
     )
 
     assert response.status_code == 409
-    assert len(metrics.metrics.get_metrics()) == metric_count
+    assert len(metricCollection.metrics.get_metrics()) == 1
     assert len(metric.values) == 1
 
 
 def test_nonexisting_metric(client: TestClient):
 
-    metric_count = len(metrics.metrics.get_metrics())
-
     response = client.post(
-        "/metric/test_nonexisting_metric/value",
+        "/metric/test/value",
         headers={
             "accept": "application/json",
         },
@@ -161,4 +136,4 @@ def test_nonexisting_metric(client: TestClient):
     )
 
     assert response.status_code == 404
-    assert len(metrics.metrics.get_metrics()) == metric_count
+    assert len(metricCollection.metrics.get_metrics()) == 0

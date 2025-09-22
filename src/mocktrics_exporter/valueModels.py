@@ -9,6 +9,8 @@ import pydantic
 
 def parse_duration(duration: str | int):
     if isinstance(duration, int):
+        if duration < 1:
+            raise ValueError("Duration must be atlest 1")
         return duration
     match = re.fullmatch(r"(\d+)([smhd])", duration.strip().lower())
     if not match:
@@ -20,11 +22,9 @@ def parse_duration(duration: str | int):
 
 def parse_size(size: str | int | float):
     if isinstance(size, (int, float)):
-        return size
+        return float(size)
     s = str(size).strip()
-    if re.fullmatch(r"\d+(?:\.\d+)?", s):
-        return float(s) if "." in s else int(s)
-    match = re.fullmatch(r"(\d+(?:\.\d+)?)([uUmMkKgG])", s)
+    match = re.fullmatch(r"(\d+(?:\.\d+)?)([umkMG])", s)
     if not match:
         raise ValueError(f"Invalid size: {size}")
     num, unit = match.groups()
@@ -32,7 +32,6 @@ def parse_size(size: str | int | float):
         "u": 1e-6,
         "m": 1e-3,
         "k": 1e3,
-        "K": 1e3,
         "M": 1e6,
         "G": 1e9,
     }
@@ -40,9 +39,9 @@ def parse_size(size: str | int | float):
 
 
 class StaticValue(pydantic.BaseModel):
-    kind: Literal["static"]
     value: float
     labels: list[str]
+    kind: Literal["static"] = "static"
 
     @pydantic.field_validator("value", mode="before")
     def convert_value(cls, v):
@@ -53,13 +52,13 @@ class StaticValue(pydantic.BaseModel):
 
 
 class RampValue(pydantic.BaseModel):
-    kind: Literal["ramp"]
+    kind: Literal["ramp"] = "ramp"
     period: int
     peak: int
     offset: int = 0
     invert: bool = False
     labels: list[str]
-    __start_time: float = time.monotonic()
+    _start_time: float = pydantic.PrivateAttr(default_factory=lambda: time.monotonic())
 
     @pydantic.field_validator("period", mode="before")
     def convert_period(cls, v):
@@ -67,14 +66,14 @@ class RampValue(pydantic.BaseModel):
 
     @pydantic.field_validator("peak", mode="before")
     def convert_peak(cls, v):
-        return parse_size(v)
+        return int(parse_size(v))
 
     @pydantic.field_validator("offset", mode="before")
     def convert_offset(cls, v):
-        return parse_size(v)
+        return int(parse_size(v))
 
     def get_value(self) -> float:
-        delta = time.monotonic() - self.__start_time
+        delta = time.monotonic() - self._start_time
         progress = (delta % self.period) / self.period
         value = progress * self.peak
         if self.invert:
@@ -84,38 +83,38 @@ class RampValue(pydantic.BaseModel):
 
 
 class SquareValue(pydantic.BaseModel):
-    kind: Literal["square"]
+    kind: Literal["square"] = "square"
     period: int
     magnitude: int
     offset: int = 0
     duty_cycle: float
     invert: bool = False
     labels: list[str]
-    __start_time: float = time.monotonic()
+    _start_time: float = pydantic.PrivateAttr(default_factory=lambda: time.monotonic())
 
     @pydantic.field_validator("period", mode="before")
     def convert_period(cls, v):
-        return parse_duration(v)
+        return int(parse_duration(v))
 
     @pydantic.field_validator("magnitude", mode="before")
     def convert_magnitude(cls, v):
-        return parse_size(v)
+        return int(parse_size(v))
 
     @pydantic.field_validator("offset", mode="before")
     def convert_offset(cls, v):
-        return parse_size(v)
+        return int(parse_size(v))
 
     @pydantic.field_validator("duty_cycle", mode="before")
     def validate_duty_cycle(cls, v):
-        if v < 0 or v > 100:
-            raise Exception("Duty cycle must be between 0 and 100")
+        if v < 0.0 or v > 100.0:
+            raise ValueError("Duty cycle must be between 0 and 100")
         return float(v) / 100
 
     def get_value(self) -> float:
-        delta = time.monotonic() - self.__start_time
+        delta = time.monotonic() - self._start_time
         progress = (delta % self.period) / self.period
         if not self.invert:
-            value = self.magnitude if progress < self.duty_cycle else 0
+            value = self.magnitude if progress <= self.duty_cycle else 0
         else:
             value = 0 if progress < self.duty_cycle else self.magnitude
 
@@ -123,12 +122,12 @@ class SquareValue(pydantic.BaseModel):
 
 
 class SineValue(pydantic.BaseModel):
-    kind: Literal["sine"]
+    kind: Literal["sine"] = "sine"
     period: int
     amplitude: int
     offset: int = 0
     labels: list[str]
-    __start_time: float = time.monotonic()
+    __start_time: float = pydantic.PrivateAttr(default_factory=lambda: time.monotonic())
 
     @pydantic.field_validator("period", mode="before")
     def convert_period(cls, v):
@@ -152,7 +151,7 @@ class SineValue(pydantic.BaseModel):
 
 
 class GaussianValue(pydantic.BaseModel):
-    kind: Literal["gaussian"]
+    kind: Literal["gaussian"] = "gaussian"
     mean: int
     sigma: float
     labels: list[str]

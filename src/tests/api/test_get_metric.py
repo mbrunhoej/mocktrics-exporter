@@ -1,8 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
-from prometheus_client import CollectorRegistry, core
 
-from mocktrics_exporter import api, metrics
+from mocktrics_exporter import api, metricCollection, metrics
 
 
 @pytest.fixture(scope="function", autouse=True)
@@ -11,33 +10,19 @@ def client():
         yield client
 
 
-@pytest.fixture(scope="function", autouse=True)
-def cleanup():
-    yield
-    delete = []
-    for name, metric in metrics.metrics.get_metrics().items():
-        if not metric.read_only:
-            delete.append(name)
-
-    for name in delete:
-        metrics.metrics.delete_metric(name)
-
-    core.REGISTRY = CollectorRegistry()
-
-
 def test_get_metric(client: TestClient):
 
     metric = metrics.Metric(
-        name="test_get_metric",
+        name="test",
         labels=["type"],
         documentation="documentation for test metric",
         values=[],
     )
 
-    metrics.metrics.add_metric(metric)
+    metricCollection.metrics.add_metric(metric)
 
     response = client.get(
-        "/metric/test_get_metric",
+        "/metric/test",
         headers={
             "accept": "application/json",
         },
@@ -48,7 +33,7 @@ def test_get_metric(client: TestClient):
 def test_metric_nonexisting(client: TestClient):
 
     response = client.get(
-        "/metric/test_metric_nonexisting",
+        "/metric/test",
         headers={
             "accept": "application/json",
         },
