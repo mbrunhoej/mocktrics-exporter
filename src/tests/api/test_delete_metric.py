@@ -1,7 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
 
-from mocktrics_exporter import api, metrics
+from mocktrics_exporter import api, metricCollection, metrics
 
 
 @pytest.fixture(scope="function", autouse=True)
@@ -19,7 +19,7 @@ def test_delete_metric(client: TestClient):
         values=[],
     )
 
-    metrics.metrics.add_metric(metric)
+    metricCollection.metrics.add_metric(metric)
 
     response = client.delete(
         "/metric/test",
@@ -29,7 +29,7 @@ def test_delete_metric(client: TestClient):
     )
 
     assert response.status_code == 200
-    assert len(metrics.metrics.get_metrics()) == 0
+    assert len(metricCollection.metrics.get_metrics()) == 0
 
 
 def test_delete_metric_nonexisting(client: TestClient):
@@ -42,4 +42,4 @@ def test_delete_metric_nonexisting(client: TestClient):
     )
 
     assert response.status_code == 404
-    assert len(metrics.metrics.get_metrics()) == 0
+    assert len(metricCollection.metrics.get_metrics()) == 0

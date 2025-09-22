@@ -11,7 +11,7 @@ def registry_mock(monkeypatch: pytest.MonkeyPatch):
 
 @pytest.fixture(autouse=True, scope="function")
 def clear_metrics(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.setattr(mocktrics_exporter.metrics.metrics, "_metrics", {})
+    monkeypatch.setattr(mocktrics_exporter.metricCollection.metrics, "_metrics", {})
 
 
 @pytest.fixture

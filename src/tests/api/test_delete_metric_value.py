@@ -1,7 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
 
-from mocktrics_exporter import api, metrics, valueModels
+from mocktrics_exporter import api, metricCollection, metrics, valueModels
 
 
 @pytest.fixture(scope="function", autouse=True)
@@ -23,7 +23,7 @@ def test_metric_delete_value(client: TestClient):
         ],
     )
 
-    metrics.metrics.add_metric(metric)
+    metricCollection.metrics.add_metric(metric)
 
     response = client.delete(
         "/metric/test/value?labels=static",
@@ -33,7 +33,7 @@ def test_metric_delete_value(client: TestClient):
     )
 
     assert response.status_code == 200
-    assert len(metrics.metrics.get_metrics()) == 1
+    assert len(metricCollection.metrics.get_metrics()) == 1
     assert len(metric.values) == 0
 
 
@@ -50,7 +50,7 @@ def test_mismatching_labels_length(client: TestClient):
         ],
     )
 
-    metrics.metrics.add_metric(metric)
+    metricCollection.metrics.add_metric(metric)
 
     response = client.delete(
         "/metric/test/value?labels=static&labels=nonexisting",
@@ -60,7 +60,7 @@ def test_mismatching_labels_length(client: TestClient):
     )
 
     assert response.status_code == 419
-    assert len(metrics.metrics.get_metrics()) == 1
+    assert len(metricCollection.metrics.get_metrics()) == 1
     assert len(metric.values) == 1
 
 
@@ -77,7 +77,7 @@ def test_delete_mismatching_labels(client: TestClient):
         ],
     )
 
-    metrics.metrics.add_metric(metric)
+    metricCollection.metrics.add_metric(metric)
 
     response = client.delete(
         "/metric/test/value?labels=wronglabel",
@@ -87,7 +87,7 @@ def test_delete_mismatching_labels(client: TestClient):
     )
 
     assert response.status_code == 404
-    assert len(metrics.metrics.get_metrics()) == 1
+    assert len(metricCollection.metrics.get_metrics()) == 1
     assert len(metric.values) == 1
 
 
@@ -101,4 +101,4 @@ def test_delete_nonexisting_metric(client: TestClient):
     )
 
     assert response.status_code == 404
-    assert len(metrics.metrics.get_metrics()) == 0
+    assert len(metricCollection.metrics.get_metrics()) == 0

@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Query, Request
 from fastapi.responses import JSONResponse
 
-from mocktrics_exporter import configuration, metrics, valueModels
+from mocktrics_exporter import configuration, metricCollection, metrics, valueModels
 
 api = FastAPI(redirect_slashes=False)
 
@@ -16,7 +16,7 @@ async def post_metric(metric: configuration.Metric) -> JSONResponse:
             values.append(value)
 
         try:
-            metrics.metrics.get_metric(metric.name)
+            metricCollection.metrics.get_metric(metric.name)
             return JSONResponse(
                 status_code=409,
                 content={"success": False, "error": "Metric already exists"},
@@ -25,7 +25,7 @@ async def post_metric(metric: configuration.Metric) -> JSONResponse:
             pass
 
         # Create metric
-        name = metrics.metrics.add_metric(
+        name = metricCollection.metrics.add_metric(
             metrics.Metric(
                 metric.name,
                 values,
@@ -47,7 +47,7 @@ async def post_metric(metric: configuration.Metric) -> JSONResponse:
 def post_metric_value(id: str, value: valueModels.MetricValue) -> JSONResponse:
 
     try:
-        metric = metrics.metrics.get_metric(id)
+        metric = metricCollection.metrics.get_metric(id)
         metric.add_value(value)
     except metrics.Metric.ValueLabelsetSizeException:
         return JSONResponse(
@@ -83,14 +83,16 @@ def post_metric_value(id: str, value: valueModels.MetricValue) -> JSONResponse:
 @api.get("/metric/all")
 def get_metric_all() -> JSONResponse:
     return JSONResponse(
-        content={key: value.to_dict() for key, value in metrics.metrics.get_metrics().items()}
+        content={
+            key: value.to_dict() for key, value in metricCollection.metrics.get_metrics().items()
+        }
     )
 
 
 @api.get("/metric/{name}")
 def get_metric_by_id(name: str) -> JSONResponse:
     try:
-        metric = metrics.metrics.get_metric(name)
+        metric = metricCollection.metrics.get_metric(name)
     except KeyError:
         return JSONResponse(
             status_code=404,
@@ -105,7 +107,7 @@ def get_metric_by_id(name: str) -> JSONResponse:
 @api.delete("/metric/{id}")
 async def delete_metric(id: str, request: Request):
     try:
-        metrics.metrics.delete_metric(id)
+        metricCollection.metrics.delete_metric(id)
         return JSONResponse(status_code=200, content={"success": True})
     except KeyError:
         return JSONResponse(
@@ -119,7 +121,7 @@ async def delete_metric(id: str, request: Request):
 @api.delete("/metric/{id}/value")
 def delete_metric_value(id: str, request: Request, labels: list[str] = Query(...)):
     try:
-        metric = metrics.metrics.get_metric(id)
+        metric = metricCollection.metrics.get_metric(id)
     except KeyError:
         return JSONResponse(
             status_code=404,
