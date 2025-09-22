@@ -1,0 +1,43 @@
+name: Release Docker Image
+run-name: Docker release ${{ github.ref_name }}
+
+on:
+  push:
+    tags: [ "*.*.*" ]
+
+permissions:
+  contents: read
+
+jobs:
+  ghcr:
+    name: Build and Push to GHCR
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Push
+        env:
+          IMAGE: ghcr.io/${{ github.repository_owner }}/mocktrics-exporter
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          VERSION="${TAG#v}"
+          echo "Releasing image ${IMAGE}:${VERSION} and :latest"
+          docker build \
+            --build-arg VERSION="${VERSION}" \
+            -t "${IMAGE}:${VERSION}" \
+            -t "${IMAGE}:latest" \
+            -f release/docker/Dockerfile .
+          docker push "${IMAGE}:${VERSION}"
+          docker push "${IMAGE}:latest"

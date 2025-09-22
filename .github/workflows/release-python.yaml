@@ -1,4 +1,4 @@
-name: CI and Release
+name: CI and Release to PyPi
 run-name: Release ${{ github.ref_name }}
 
 on:

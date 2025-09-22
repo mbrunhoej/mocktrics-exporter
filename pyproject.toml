@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools>=68", "wheel"]
+requires = ["setuptools>=68", "wheel", "setuptools_scm>=8"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "mocktrics-exporter"
-version = "0.1.0"
+dynamic = ["version"]
 description = "A FastAPI-based mock Prometheus exporter with configurable metrics and UI."
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -13,7 +13,7 @@ requires-python = ">=3.9"
 dependencies = [
   "prometheus_client",
   "PyYAML",
-  "pydantic",
+  "pydantic>=2",
   "fastapi",
   "uvicorn",
   "python-multipart",
@@ -39,6 +39,13 @@ package-dir = {"" = "src"}
 [tool.setuptools.packages.find]
 where = ["src"]
 include = ["mocktrics_exporter*"]
+
+[project.scripts]
+mocktrics-exporter = "mocktrics_exporter.main:main"
+
+[tool.setuptools_scm]
+tag_regex = "^v?(?P<version>\\d+\\.\\d+\\.\\d+)$"
+local_scheme = "no-local-version"
 
 [tool.pytest.ini_options]
 pythonpath = ["src", "src/mocktrics_exporter"]
