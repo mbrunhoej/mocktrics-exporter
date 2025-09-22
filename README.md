@@ -10,12 +10,16 @@ Note: The Python package is named `mocktrics_exporter` (underscore in the import
 
 ## Install
 
+- From PyPI:
+  - `pip install mocktrics-exporter`
 - From source (editable):
   - `pip install -e .`
 
 ## Quick Start
 
-- Run from source:
+- Run the exporter:
+  - `mocktrics-exporter -f config.yaml`
+- Alternatively from source:
   - `python -m mocktrics_exporter.main -f config.yaml`
 - Defaults:
   - Metrics served on `:8000`
