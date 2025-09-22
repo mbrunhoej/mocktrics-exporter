@@ -1,3 +1,5 @@
+import logging
+
 import pydantic
 import yaml
 
@@ -22,6 +24,7 @@ class Configuration(pydantic.BaseModel):
 if arguments.config_file:
     with open(arguments.config_file, "r") as file:
         config = yaml.safe_load(file)
+        logging.info(f"Config loaded: {config}")
 else:
     config = {}
 
