@@ -168,3 +168,18 @@ def test_collector(metric_family_mock, base_metric):
     assert metric_family.labels == base_metric["labels"]
     assert metric_family.unit == base_metric["unit"]
     assert metric_family.collected_values == [{"labels": ["test"], "value": 100.0}]
+
+
+def is_registered(metric: Metric):
+    return metric._collector in metric._registry._collector_to_names
+
+
+def test_register(base_metric):
+    metric = Metric(**base_metric)
+    assert is_registered(metric)
+
+
+def test_unregister(base_metric):
+    metric = Metric(**base_metric)
+    metric.unregister()
+    assert not is_registered(metric)

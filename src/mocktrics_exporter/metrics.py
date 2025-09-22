@@ -35,7 +35,7 @@ class Metric:
 
         self._collector = self.Collector(self)
 
-        self._registry.register(cast(registry.Collector, self._collector))
+        self.register()
 
     @staticmethod
     def validate_name(name: str):
@@ -93,6 +93,12 @@ class Metric:
         v.append(value)
         self.validate_values(v)
         self.values.append(value)
+
+    def register(self):
+        self._registry.register(cast(registry.Collector, self._collector))
+
+    def unregister(self):
+        self._registry.unregister(cast(registry.Collector, self._collector))
 
     class DuplicateValueLabelsetException(Exception):
         pass
