@@ -1,0 +1,10 @@
+
+image:
+  name: ghcr.io/mbrunhoej/mocktrics-exporter
+  tag: # default to Chart.appVersion
+
+tolerations: []
+
+nodeSelector: {}
+
+config: ""
