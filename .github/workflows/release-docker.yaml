@@ -1,5 +1,5 @@
 name: Release Docker Image
-run-name: Docker release ${{ github.ref_name }}
+run-name: Release to GHCR
 
 on:
   push:
