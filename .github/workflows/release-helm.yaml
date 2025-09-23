@@ -36,4 +36,4 @@ jobs:
         run: helm package release/helm
 
       - name: Push helm chart to registry
-        run: helm push mocktrics-exporter-$(helm show chart release/helm | grep version | cut -d' ' -f2-).tgz oci://ghcr.io/mbrunhoej/charts/mocktrics-exporter
+        run: helm push mocktrics-exporter-$(helm show chart release/helm | grep version | cut -d' ' -f2-).tgz oci://ghcr.io/mbrunhoej/mocktrics-exporter
