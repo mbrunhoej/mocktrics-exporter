@@ -1,10 +1,10 @@
 name: Release Docker Image
-run-name: Release to GHCR
+run-name: Release Image to GHCR
 
 on:
   push:
     tags: [ "*.*.*" ]
-
+  
 permissions:
   contents: read
 
