@@ -11,6 +11,7 @@ permissions:
 jobs:
   ghcr:
     name: Build and Push to GHCR
+    needs: [tests]
     runs-on: ubuntu-latest
     permissions:
       contents: read
