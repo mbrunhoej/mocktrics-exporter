@@ -46,7 +46,7 @@ jobs:
     - name: Run mypy validation
       run: mypy src/
 
-    - name: YAML lint (exclude Helm templates)
+    - name: Run yamllint validation
       run: yamllint -s .
 
   unit-tests:
