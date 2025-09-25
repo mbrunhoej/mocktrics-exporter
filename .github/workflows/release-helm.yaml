@@ -3,11 +3,11 @@ run-name: Release Chart to GHCR
 
 on:
   push:
-    tags: [ "*.*.*" ]
+    tags: ["*.*.*"]
 
 permissions:
   contents: read
-  
+
 jobs:
   ghcr:
     name: Release Helm Chart to GHCR
@@ -16,28 +16,31 @@ jobs:
       contents: read
       packages: write
     steps:
-      - name: Check out repository code
-        uses: actions/checkout@v4
+    - name: Check out repository code
+      uses: actions/checkout@v4
 
-      - name: Insert AppVersion into Chart.yaml
-        shell: bash
-        run: |
-          TAG="${{ github.ref_name }}"
-          sed -i -E "s/^appVersion: .*/appVersion: \"${TAG}\"/" release/helm/Chart.yaml
-          grep '^appVersion:' release/helm/Chart.yaml || true
+    - name: Insert AppVersion into Chart.yaml
+      shell: bash
+      run: |
+        TAG="${{ github.ref_name }}"
+        sed -i -E "s/^appVersion: .*/appVersion: \"${TAG}\"/" release/helm/Chart.yaml
+        grep '^appVersion:' release/helm/Chart.yaml || true
 
-      - name: helm template default values
-        run: helm template mocktrics-exporter release/helm -f release/helm/values.yaml
+    - name: helm template default values
+      run: helm template mocktrics-exporter release/helm -f release/helm/values.yaml
 
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Log in to GHCR
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Helm package
-        run: helm package release/helm
+    - name: Helm package
+      run: helm package release/helm
 
-      - name: Push helm chart to registry
-        run: helm push mocktrics-exporter-$(helm show chart release/helm | grep version | cut -d' ' -f2-).tgz oci://ghcr.io/${{ github.repository_owner }}/mocktrics-exporter
+    - name: Push helm chart to registry
+      run: |-
+        helm push mocktrics-exporter-$(helm show chart release/helm \
+         | grep version \
+         | cut -d' ' -f2-).tgz oci://ghcr.io/${{ github.repository_owner }}/mocktrics-exporter

@@ -7,3 +7,4 @@ isort
 flake8
 types-PyYAML
 pytest-cov
+yamllint
