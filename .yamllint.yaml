@@ -1,0 +1,14 @@
+extends: default
+
+ignore: |
+  release/helm/templates/**
+
+rules:
+  indentation:
+    spaces: 2
+    indent-sequences: false
+  document-start: disable
+  line-length:
+    max: 100
+  truthy:
+    check-keys: false

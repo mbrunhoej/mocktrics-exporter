@@ -3,7 +3,7 @@ run-name: Release Package to PyPi
 
 on:
   push:
-    tags: [ "*.*.*" ]
+    tags: ["*.*.*"]
 
 permissions:
   contents: read
@@ -17,32 +17,32 @@ jobs:
       name: pypi
       url: https://pypi.org/p/mocktrics-exporter
     steps:
-      - name: Checkout (with tags)
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+    - name: Checkout (with tags)
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-          cache: pip
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        cache: pip
 
-      - name: Install build tooling
-        run: |
-          python -m pip install --upgrade pip
-          pip install build setuptools_scm
+    - name: Install build tooling
+      run: |
+        python -m pip install --upgrade pip
+        pip install build setuptools_scm
 
-      - name: Build sdist and wheel (tag version)
-        run: |
-          set -euo pipefail
-          VERSION="$(echo "$GITHUB_REF_NAME" | sed -E 's/^v//')"
-          echo "Building version: ${VERSION}"
-          SETUPTOOLS_SCM_PRETEND_VERSION="${VERSION}" python -m build
+    - name: Build sdist and wheel (tag version)
+      run: |
+        set -euo pipefail
+        VERSION="$(echo "$GITHUB_REF_NAME" | sed -E 's/^v//')"
+        echo "Building version: ${VERSION}"
+        SETUPTOOLS_SCM_PRETEND_VERSION="${VERSION}" python -m build
 
-      - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        if: startsWith(github.ref, 'refs/tags/')
-        with:
-          password: ${{ secrets.PYPI_API_TOKEN }}
-          verify-metadata: true
+    - name: Publish to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        password: ${{ secrets.PYPI_API_TOKEN }}
+        verify-metadata: true
