@@ -1,5 +1,5 @@
-name: CI and Release to PyPi
-run-name: Release to PyPi
+name: Release to PyPi
+run-name: Release Package to PyPi
 
 on:
   push:
