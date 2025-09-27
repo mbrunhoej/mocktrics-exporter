@@ -1,9 +1,24 @@
+import logging
+
 from fastapi import FastAPI, Query, Request
 from fastapi.responses import JSONResponse
 
 from mocktrics_exporter import configuration, metricCollection, metrics, valueModels
 
 api = FastAPI(redirect_slashes=False)
+
+
+class _HealthcheckFilter(logging.Filter):
+    """Filter out noisy probe requests from access logs."""
+
+    _HEALTH_PATH_FRAGMENTS = {"/healthz"}
+
+    def filter(self, record: logging.LogRecord) -> bool:  # pragma: no cover - trivial logic
+        message = record.getMessage()
+        return not any(fragment in message for fragment in self._HEALTH_PATH_FRAGMENTS)
+
+
+logging.getLogger("uvicorn.access").addFilter(_HealthcheckFilter())
 
 
 @api.get("/healthz")
