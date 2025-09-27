@@ -3,8 +3,38 @@ image:
   # default to Chart.appVersion
   tag:
 
+config: ""
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 250m
+    memory: 256Mi
+
+livenessProbe:
+  enabled: true
+  path: /healthz
+  port: 8080
+  scheme: HTTP
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 2
+  failureThreshold: 3
+  successThreshold: 1
+
+readinessProbe:
+  enabled: true
+  path: /healthz
+  port: 8080
+  scheme: HTTP
+  initialDelaySeconds: 2
+  periodSeconds: 10
+  timeoutSeconds: 2
+  failureThreshold: 3
+  successThreshold: 1
+
 tolerations: []
 
 nodeSelector: {}
-
-config: ""
