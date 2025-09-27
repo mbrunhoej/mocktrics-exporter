@@ -32,6 +32,9 @@ spec:
       - name: {{ .Release.Name }}
         image: {{ .Values.image.name }}:{{ default .Chart.AppVersion .Values.image.tag }}
         imagePullPolicy: IfNotPresent
+        args:
+        - f
+        - /opt/mocktrics-exporter/config.yaml
         ports:
         - name: http-api
           containerPort: 8080
