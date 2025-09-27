@@ -9,11 +9,10 @@ api = FastAPI(redirect_slashes=False)
 
 
 class _HealthcheckFilter(logging.Filter):
-    """Filter out noisy probe requests from access logs."""
 
     _HEALTH_PATH_FRAGMENTS = {"/healthz"}
 
-    def filter(self, record: logging.LogRecord) -> bool:  # pragma: no cover - trivial logic
+    def filter(self, record: logging.LogRecord) -> bool:
         message = record.getMessage()
         return not any(fragment in message for fragment in self._HEALTH_PATH_FRAGMENTS)
 
