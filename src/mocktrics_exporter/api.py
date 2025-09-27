@@ -6,6 +6,11 @@ from mocktrics_exporter import configuration, metricCollection, metrics, valueMo
 api = FastAPI(redirect_slashes=False)
 
 
+@api.get("/healthz")
+def healthcheck() -> JSONResponse:
+    return JSONResponse(content={"status": "ok"})
+
+
 @api.post("/metric")
 async def post_metric(metric: configuration.Metric) -> JSONResponse:
 

@@ -39,17 +39,40 @@ spec:
         - name: http-metrics
           containerPort: 8000
           protocol: TCP
+        {{- with .Values.livenessProbe }}
+        {{- if .enabled }}
+        livenessProbe:
+          httpGet:
+            path: {{ default "/healthz" .path }}
+            port: {{ default 8080 .port }}
+            scheme: {{ default "HTTP" .scheme }}
+          initialDelaySeconds: {{ default 5 .initialDelaySeconds }}
+          periodSeconds: {{ default 10 .periodSeconds }}
+          timeoutSeconds: {{ default 2 .timeoutSeconds }}
+          failureThreshold: {{ default 3 .failureThreshold }}
+          successThreshold: {{ default 1 .successThreshold }}
+        {{- end }}
+        {{- end }}
+        {{- with .Values.readinessProbe }}
+        {{- if .enabled }}
+        readinessProbe:
+          httpGet:
+            path: {{ default "/healthz" .path }}
+            port: {{ default 8080 .port }}
+            scheme: {{ default "HTTP" .scheme }}
+          initialDelaySeconds: {{ default 2 .initialDelaySeconds }}
+          periodSeconds: {{ default 10 .periodSeconds }}
+          timeoutSeconds: {{ default 2 .timeoutSeconds }}
+          failureThreshold: {{ default 3 .failureThreshold }}
+          successThreshold: {{ default 1 .successThreshold }}
+        {{- end }}
+        {{- end }}
         volumeMounts:
         - name: config
           mountPath: /opt/mocktrics-exporter/config.yaml
           subPath: config
         resources:
-          requests:
-            cpu: 50m
-            memory: 64Mi
-          limits:
-            cpu: 250m
-            memory: 256Mi
+          {{- .Values.resources | toYaml | nindent 10 }}
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
