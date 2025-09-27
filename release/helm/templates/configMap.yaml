@@ -10,4 +10,4 @@ metadata:
     app.kubernetes.io/managed-by: Helm
 data:
   config: |
-    {{- .Values.config | nindent 4 }}
+    {{- .Values.config | toYaml | nindent 4 }}
