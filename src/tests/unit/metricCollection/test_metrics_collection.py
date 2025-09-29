@@ -11,8 +11,8 @@ def test_add_metric(base_metric):
     collection = MetricsCollection()
     collection.add_metric(metric)
 
-    assert metric.name in collection._metrics
-    assert metric in collection._metrics.values()
+    assert metric.name in [metric.name for metric in collection._metrics]
+    assert metric in [metric.metric for metric in collection._metrics]
 
 
 def test_add_metric_duplicate(base_metric):
@@ -35,7 +35,7 @@ def test_get_metrics(base_metric):
     metric = Metric(**base_metric)
     collection.add_metric(metric)
 
-    assert metric == collection.get_metrics()[metric.name]
+    assert metric == collection.get_metrics()[0]
 
 
 def test_get_metric(base_metric):
@@ -57,6 +57,19 @@ def test_delete_metric(base_metric):
     collection.delete_metric(metric.name)
 
     assert len(collection._metrics) == 0
+
+
+def test_delete_metric_read_only(base_metric):
+
+    metric = Metric(**base_metric)
+
+    collection = MetricsCollection()
+    collection.add_metric(metric, read_only=True)
+
+    with pytest.raises(AttributeError):
+        collection.delete_metric(metric.name)
+
+    assert len(collection._metrics) == 1
 
 
 def test_delete_unregister(monkeypatch, base_metric):

@@ -40,7 +40,7 @@ async def post_metric(metric: configuration.Metric) -> JSONResponse:
                 status_code=409,
                 content={"success": False, "error": "Metric already exists"},
             )
-        except KeyError:
+        except IndexError:
             pass
 
         # Create metric
@@ -84,7 +84,7 @@ def post_metric_value(id: str, value: valueModels.MetricValue) -> JSONResponse:
                 "error": "Labelset already exists",
             },
         )
-    except KeyError:
+    except IndexError:
         return JSONResponse(
             status_code=404,
             content={
@@ -102,9 +102,7 @@ def post_metric_value(id: str, value: valueModels.MetricValue) -> JSONResponse:
 @api.get("/metric/all")
 def get_metric_all() -> JSONResponse:
     return JSONResponse(
-        content={
-            key: value.to_dict() for key, value in metricCollection.metrics.get_metrics().items()
-        }
+        content=[metric.to_dict() for metric in metricCollection.metrics.get_metrics()]
     )
 
 
@@ -112,7 +110,7 @@ def get_metric_all() -> JSONResponse:
 def get_metric_by_id(name: str) -> JSONResponse:
     try:
         metric = metricCollection.metrics.get_metric(name)
-    except KeyError:
+    except IndexError:
         return JSONResponse(
             status_code=404,
             content={
@@ -128,7 +126,7 @@ async def delete_metric(id: str, request: Request):
     try:
         metricCollection.metrics.delete_metric(id)
         return JSONResponse(status_code=200, content={"success": True})
-    except KeyError:
+    except IndexError:
         return JSONResponse(
             status_code=404,
             content={"success": False, "error": "Requested metric does not exist"},
@@ -141,7 +139,7 @@ async def delete_metric(id: str, request: Request):
 def delete_metric_value(id: str, request: Request, labels: list[str] = Query(...)):
     try:
         metric = metricCollection.metrics.get_metric(id)
-    except KeyError:
+    except IndexError:
         return JSONResponse(
             status_code=404,
             content={"success": False, "error": "Requested metric does not exist"},

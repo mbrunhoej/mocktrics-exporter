@@ -35,7 +35,6 @@ def test_get_value_all(client: TestClient):
     metricCollection.metrics.add_metric(metric)
 
     assert len(metricCollection.metrics.get_metrics()) == 2
-
     response = client.get(
         "/metric/all",
         headers={
@@ -43,3 +42,4 @@ def test_get_value_all(client: TestClient):
         },
     )
     assert response.status_code == 200
+    assert len(response.json()) == 2
