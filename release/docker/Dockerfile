@@ -18,4 +18,5 @@ RUN python -m pip install --no-cache-dir --upgrade pip && \
 
 EXPOSE 8000 8080
 
-CMD ["mocktrics-exporter"]
+ENTRYPOINT ["mocktrics-exporter"]
+CMD []
