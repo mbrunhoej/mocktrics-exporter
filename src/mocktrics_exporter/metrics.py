@@ -118,6 +118,12 @@ class Metric:
             "values": [value.model_dump() for value in self.values],
         }
 
+    def __eq__(self, value) -> bool:
+        try:
+            return self.to_dict() == value.to_dict()
+        except Exception:
+            return False
+
     class Collector:
 
         _metricFamily = GaugeMetricFamily

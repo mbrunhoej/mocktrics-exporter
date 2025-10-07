@@ -1,0 +1,3 @@
+import mocktrics_exporter.metricCollection
+
+metrics_collection = mocktrics_exporter.metricCollection.MetricsCollection()

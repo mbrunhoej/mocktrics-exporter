@@ -1,3 +1,6 @@
+import os
+import tempfile
+
 import pytest
 from prometheus_client import CollectorRegistry
 
@@ -16,7 +19,22 @@ def registry_mock(monkeypatch: pytest.MonkeyPatch):
 
 @pytest.fixture(autouse=True, scope="function")
 def clear_metrics(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.setattr(mocktrics_exporter.metricCollection.metrics, "_metrics", [])
+    monkeypatch.setattr(mocktrics_exporter.dependencies.metrics_collection, "_metrics", [])
+
+
+@pytest.fixture(autouse=True, scope="function")
+def database_temp(monkeypatch: pytest.MonkeyPatch):
+
+    with tempfile.NamedTemporaryFile(delete=False) as tmp:
+        db_path = tmp.name
+    monkeypatch.setattr(
+        mocktrics_exporter.persistence,
+        "database",
+        mocktrics_exporter.persistence.Persistence(db_path),
+    )
+    yield
+    if os.path.exists(db_path):
+        os.remove(db_path)
 
 
 @pytest.fixture

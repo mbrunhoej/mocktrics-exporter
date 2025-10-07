@@ -1,7 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
 
-from mocktrics_exporter import api, metricCollection, metrics
+from mocktrics_exporter import api, dependencies, metrics
 
 
 @pytest.fixture(scope="function", autouse=True)
@@ -19,7 +19,7 @@ def test_get_metric(client: TestClient):
         values=[],
     )
 
-    metricCollection.metrics.add_metric(metric)
+    dependencies.metrics_collection.add_metric(metric)
 
     response = client.get(
         "/metric/test",
