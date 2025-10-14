@@ -5,6 +5,7 @@ import pytest
 from prometheus_client import CollectorRegistry
 
 import mocktrics_exporter
+import mocktrics_exporter.dependencies
 
 
 @pytest.fixture(autouse=True, scope="function")

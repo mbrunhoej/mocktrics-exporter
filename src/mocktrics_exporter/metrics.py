@@ -59,7 +59,7 @@ class Metric:
     @staticmethod
     def validate_labels(labels: list[str]):
         if len(labels) < 1 or len(labels) > 100:
-            raise ValueError("Metric labels must be between 1 and 100")
+            raise ValueError("Metric label count must be between 1 and 100")
         for label in labels:
             if len(label) < 1 or len(label) > 100:
                 raise ValueError("Label names must be between 1 and 100")
@@ -118,11 +118,29 @@ class Metric:
             "values": [value.model_dump() for value in self.values],
         }
 
-    def __eq__(self, value) -> bool:
+    def __eq__(self, metric) -> bool:
         try:
-            return self.to_dict() == value.to_dict()
+            if not (
+                self.name == metric.name
+                and self.documentation == metric.documentation
+                and self.unit == metric.unit
+                and self.labels == metric.labels
+            ):
+                return False
+
+            for value in self.values:
+                found = False
+                for v in metric.values:
+
+                    if value.model_dump() == v.model_dump():
+                        found = True
+
+                if not found:
+                    return False
+
         except Exception:
             return False
+        return True
 
     class Collector:
 

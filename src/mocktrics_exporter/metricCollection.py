@@ -38,9 +38,9 @@ class MetricsCollection:
         metric = [metric for metric in self._metrics if metric.name == id][0].metric
         metric.add_value(value)
 
-        # persistence.database.add_metric_value(
-        #     value, persistence.database.get_metric_id(metric.name)
-        # )
+        persistence.database.add_metric_value(
+            value, persistence.database.get_metric_id(metric.name)
+        )
 
     def get_metrics(self) -> list[Metric]:
         return [metric.metric for metric in self._metrics]
@@ -58,14 +58,14 @@ class MetricsCollection:
         metaMetrics.metrics.metric_deleted.inc()
         self.update_metrics()
         logging.info(f"Removing metric: {id}: {metric.name}")
-        # persistence.database.delete_metric(metric.metric)
+        persistence.database.delete_metric(metric.metric)
 
     def delete_metric_value(self, id: str, labels: list[str]) -> None:
         metric = [metric for metric in self._metrics if metric.name == id][0].metric
         for value in metric.values:
             if all([label in value.labels for label in labels]):
                 metric.values.remove(value)
-                #    persistence.database.delete_metric_value(metric, value)
+                persistence.database.delete_metric_value(metric, value)
                 break
 
     def update_metrics(self) -> None:

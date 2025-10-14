@@ -29,14 +29,14 @@ class Persistence:
                 metric_id = self.cursor.lastrowid
                 assert metric_id is not None
 
-                for label in metric.labels:
+                for index, label in enumerate(metric.labels):
 
                     self.cursor.execute(
                         """
-                    INSERT INTO metric_labels (name, metric_id)
-                    VALUES (?, ?)
+                    INSERT INTO metric_labels (name, metric_id, position)
+                    VALUES (?, ?, ?)
                     """,
-                        (label, metric_id),
+                        (label, metric_id, index),
                     )
 
                 for value in metric.values:
@@ -56,8 +56,8 @@ class Persistence:
                 """
             SELECT id FROM metrics WHERE name = ?
             """,
-                (name),
-            ).fetchone()
+                (name,),
+            ).fetchone()[0]
 
         return id
 
@@ -73,7 +73,7 @@ class Persistence:
                 m.name,
                 m.documentation,
                 m.unit,
-                GROUP_CONCAT(ml.name, ', ') AS labels
+                GROUP_CONCAT(ml.name, ', ' ORDER BY ml.position) AS labels
             FROM metrics AS m
             LEFT JOIN metric_labels AS ml
                 ON ml.metric_id = m.id
@@ -88,7 +88,7 @@ class Persistence:
                 SELECT
                     v.id,
                     v.kind,
-                    GROUP_CONCAT(vl.label, ', ') AS labels
+                    GROUP_CONCAT(vl.label, ', ' ORDER BY vl.position) AS labels
                 FROM value_base AS v
                 LEFT JOIN value_labels AS vl
                     ON vl.value_id = v.id
@@ -179,6 +179,7 @@ class Persistence:
     def add_metric_value(self, value: valueModels.MetricValue, metric_id: int):
 
         with self._connection:
+
             self.cursor.execute(
                 """
             INSERT INTO value_base (kind, metric_id)
@@ -188,14 +189,14 @@ class Persistence:
             )
             value_id = self.cursor.lastrowid
 
-            for label in value.labels:
+            for index, label in enumerate(value.labels):
 
                 self.cursor.execute(
                     """
-                INSERT INTO value_labels (label, value_id)
-                VALUES (?, ?)
+                INSERT INTO value_labels (label, value_id, position)
+                VALUES (?, ?, ?)
                 """,
-                    (label, value_id),
+                    (label, value_id, index),
                 )
 
             match value.kind:
@@ -223,15 +224,14 @@ class Persistence:
                     val = cast(valueModels.SquareValue, value)
                     self.cursor.execute(
                         """
-                    INSERT INTO square (period, magnitude, offset, duty_cycle, offset, invert, id)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    INSERT INTO square (period, magnitude, offset, duty_cycle, invert, id)
+                    VALUES (?, ?, ?, ?, ?, ?)
                     """,
                         (
                             val.period,
                             val.magnitude,
                             val.offset,
-                            val.duty_cycle,
-                            val.offset,
+                            val.duty_cycle * 100,
                             val.invert,
                             value_id,
                         ),
@@ -241,10 +241,10 @@ class Persistence:
                     val = cast(valueModels.SineValue, value)
                     self.cursor.execute(
                         """
-                    INSERT INTO sine (period, amplitude, offset, offset, id)
-                    VALUES (?, ?, ?, ?, ?)
+                    INSERT INTO sine (period, amplitude, offset, id)
+                    VALUES (?, ?, ?, ?)
                     """,
-                        (val.period, val.amplitude, val.offset, val.offset, value_id),
+                        (val.period, val.amplitude, val.offset, value_id),
                     )
 
                 case "gaussian":
@@ -252,7 +252,7 @@ class Persistence:
                     self.cursor.execute(
                         """
                     INSERT INTO gaussian (mean, sigma, id)
-                    VALUES (?, ?)
+                    VALUES (?, ?, ?)
                     """,
                         (val.mean, val.sigma, value_id),
                     )
@@ -313,6 +313,7 @@ class Persistence:
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             metric_id INT NOT NULL,
+            position INT NOT NULL,
             UNIQUE (metric_id, name),
             FOREIGN KEY (metric_id)
                 REFERENCES metrics(id)
@@ -344,6 +345,7 @@ class Persistence:
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             label TEXT NOT NULL,
             value_id INT NOT NULL,
+            position INT NOT NULL,
             FOREIGN KEY (value_id)
                 REFERENCES value_base(id)
                     ON DELETE CASCADE
@@ -415,10 +417,43 @@ class Persistence:
         self._connection.commit()
 
     def _ensure_indicies(self) -> None:
-        ...
-        # self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_metric_name ON metric(name);")
+        with self._connection:
+            self.cursor.execute(
+                """
+            CREATE INDEX IF NOT EXISTS idx_metrics_name ON metrics(name);
+            """
+            )
+            self.cursor.execute(
+                """
+            CREATE INDEX IF NOT EXISTS idx_metric_labels_metric_id ON metric_labels(metric_id);
+            """
+            )
+            self.cursor.execute(
+                """
+            CREATE INDEX IF NOT EXISTS idx_value_base_metric_id ON value_base(metric_id);
+            """
+            )
+            self.cursor.execute(
+                """
+            CREATE INDEX IF NOT EXISTS idx_value_labels_value_id ON value_labels(value_id);
+            """
+            )
 
-        # self._connection.commit()
+        self._connection.commit()
+
+    def get_incidies(self) -> list[str]:
+        with self._connection:
+            return [
+                metric[0]
+                for metric in self.cursor.execute(
+                    """
+            SELECT name, tbl_name, sql
+            FROM sqlite_master
+            WHERE type = 'index'
+            ORDER BY tbl_name, name;
+        """
+                ).fetchall()
+            ]
 
 
 database = Persistence("mocktrics-exporter.db")
