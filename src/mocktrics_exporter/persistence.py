@@ -268,10 +268,10 @@ class Persistence:
                 """
             SELECT
                 v.id,
-                GROUP_CONCAT(vl.name, ', ') AS labels
+                GROUP_CONCAT(vl.label, ', ') AS labels
             FROM value_base as v
             LEFT JOIN value_labels AS vl
-                ON vl.value_id = m.id
+                ON vl.value_id = v.id
             WHERE metric_id = ?
             """,
                 (id,),
@@ -279,17 +279,13 @@ class Persistence:
 
             for db_v in db_values:
 
-                if all([value.labels in v for v in db_v[1].split(", ")]):
-
-                    self.cursor.execute(
-                        """
+                self.cursor.execute(
+                    """
                     DELETE FROM value_base
                     WHERE id = ?
                     """,
-                        (db_v[0],),
-                    )
-            metric_id = self.cursor.lastrowid
-            assert metric_id is not None
+                    (db_v[0],),
+                )
 
     def _ensure_tables(self) -> None:
 

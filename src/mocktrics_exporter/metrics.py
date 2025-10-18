@@ -138,8 +138,12 @@ class Metric:
                 if not found:
                     return False
 
+            if not len(self.values) == len(metric.values):
+                return False
+
         except Exception:
             return False
+
         return True
 
     class Collector:

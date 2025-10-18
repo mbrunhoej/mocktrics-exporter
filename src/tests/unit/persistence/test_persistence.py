@@ -47,7 +47,113 @@ def test_add_and_get_metric(base_metric, labels, values):
     db.add_metric(metric)
 
     metrics = db.get_metrics()
-
-    print(metric.to_dict())
-    print(metrics[0].to_dict())
+    assert len(metrics) == 1
     assert metric == metrics[0]
+
+
+def test_get_metric_id(base_metric):
+
+    names = ["metric1", "metric2", "metric3", "metric4", "metric5"]
+
+    db = persistence.database
+
+    for name in names:
+        base_metric.update({"name": name})
+        metric = Metric(**base_metric)
+
+        db.add_metric(metric)
+
+    for index, name in enumerate(names, start=1):
+
+        id = db.get_metric_id(name)
+        assert index == id
+
+
+def test_delete_metric(base_metric):
+
+    db = persistence.database
+
+    base_metric.update(
+        {"labels": ["response"], "values": [valueModels.StaticValue(value=0.0, labels=["200"])]}
+    )
+    metric = Metric(**base_metric)
+    db.add_metric(metric)
+
+    assert len(db.get_metrics()) == 1
+
+    db.delete_metric(metric)
+
+    assert len(db.get_metrics()) == 0
+
+    db = persistence.database
+    value = valueModels.StaticValue(value=0.0, labels=["200"])
+
+    base_metric.update({"labels": ["response"], "values": [value]})
+    metric = Metric(**base_metric)
+    db.add_metric(metric)
+
+    db.delete_metric_value(metric, value)
+
+    db_metric = db.get_metrics()[0]
+
+    assert len(db_metric.values) == 0
+
+
+def test_delete_metric_value(base_metric):
+
+    db = persistence.database
+
+    value = valueModels.StaticValue(value=0.0, labels=["200"])
+
+    base_metric.update({"labels": ["response"], "values": [value]})
+    metric = Metric(**base_metric)
+    db.add_metric(metric)
+
+    db_metric = db.get_metrics()[0]
+    assert len(db_metric.values) == 1
+
+    db.delete_metric_value(metric, value)
+
+    db_metric = db.get_metrics()[0]
+    assert len(db_metric.values) == 0
+
+
+def test_cleanup(base_metric):
+
+    db = persistence.database
+
+    values = [
+        valueModels.StaticValue(value=0.0, labels=["200"]),
+        valueModels.RampValue(period=1, peak=1, labels=["500"]),
+        valueModels.SquareValue(period=1, magnitude=1, duty_cycle=50.0, labels=["404"]),
+        valueModels.SineValue(period=1, amplitude=1, labels=["419"]),
+        valueModels.GaussianValue(mean=0, sigma=1.0, labels=["201"]),
+    ]
+
+    base_metric.update({"labels": ["response"], "values": values})
+    metric = Metric(**base_metric)
+    db.add_metric(metric)
+
+    with db._connection:
+        assert db.cursor.execute("SELECT COUNT(*) FROM metrics;").fetchone()[0] == 1
+        assert db.cursor.execute("SELECT COUNT(*) FROM metric_labels;").fetchone()[0] == 1
+        assert db.cursor.execute("SELECT COUNT(*) FROM value_base;").fetchone()[0] == 5
+        assert db.cursor.execute("SELECT COUNT(*) FROM value_labels;").fetchone()[0] == 5
+        assert db.cursor.execute("SELECT COUNT(*) FROM static;").fetchone()[0] == 1
+        assert db.cursor.execute("SELECT COUNT(*) FROM ramp;").fetchone()[0] == 1
+        assert db.cursor.execute("SELECT COUNT(*) FROM square;").fetchone()[0] == 1
+        assert db.cursor.execute("SELECT COUNT(*) FROM sine;").fetchone()[0] == 1
+        assert db.cursor.execute("SELECT COUNT(*) FROM gaussian;").fetchone()[0] == 1
+
+    db.delete_metric(metric)
+
+    with db._connection:
+        assert db.cursor.execute("SELECT COUNT(*) FROM metrics;").fetchone()[0] == 0
+        assert db.cursor.execute("SELECT COUNT(*) FROM metric_labels;").fetchone()[0] == 0
+        assert db.cursor.execute("SELECT COUNT(*) FROM value_base;").fetchone()[0] == 0
+        assert db.cursor.execute("SELECT COUNT(*) FROM value_labels;").fetchone()[0] == 0
+        assert db.cursor.execute("SELECT COUNT(*) FROM static;").fetchone()[0] == 0
+        assert db.cursor.execute("SELECT COUNT(*) FROM ramp;").fetchone()[0] == 0
+        assert db.cursor.execute("SELECT COUNT(*) FROM square;").fetchone()[0] == 0
+        assert db.cursor.execute("SELECT COUNT(*) FROM sine;").fetchone()[0] == 0
+        assert db.cursor.execute("SELECT COUNT(*) FROM gaussian;").fetchone()[0] == 0
