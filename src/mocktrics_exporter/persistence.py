@@ -112,45 +112,53 @@ class Persistence:
 
                     match kind[1]:
                         case "static":
-                            v = valueModels.StaticValue(
-                                kind=kind[1], value=value[1], labels=kind[2].split(", ")
+                            values.append(
+                                valueModels.StaticValue(
+                                    kind=kind[1], value=value[1], labels=kind[2].split(", ")
+                                )
                             )
                         case "ramp":
-                            v = valueModels.RampValue(
-                                kind=kind[1],
-                                period=value[1],
-                                peak=value[2],
-                                offset=value[3],
-                                invert=bool(value[4]),
-                                labels=kind[2].split(", "),
+                            values.append(
+                                valueModels.RampValue(
+                                    kind=kind[1],
+                                    period=value[1],
+                                    peak=value[2],
+                                    offset=value[3],
+                                    invert=bool(value[4]),
+                                    labels=kind[2].split(", "),
+                                )
                             )
                         case "square":
-                            v = valueModels.SquareValue(
-                                kind=kind[1],
-                                period=value[1],
-                                magnitude=value[2],
-                                offset=value[3],
-                                duty_cycle=value[4],
-                                invert=bool(value[5]),
-                                labels=kind[2].split(", "),
+                            values.append(
+                                valueModels.SquareValue(
+                                    kind=kind[1],
+                                    period=value[1],
+                                    magnitude=value[2],
+                                    offset=value[3],
+                                    duty_cycle=value[4],
+                                    invert=bool(value[5]),
+                                    labels=kind[2].split(", "),
+                                )
                             )
                         case "sine":
-                            v = valueModels.SineValue(
-                                kind=kind[1],
-                                period=value[1],
-                                amplitude=value[2],
-                                offset=value[3],
-                                labels=kind[2].split(", "),
+                            values.append(
+                                valueModels.SineValue(
+                                    kind=kind[1],
+                                    period=value[1],
+                                    amplitude=value[2],
+                                    offset=value[3],
+                                    labels=kind[2].split(", "),
+                                )
                             )
                         case "gaussian":
-                            v = valueModels.GaussianValue(
-                                kind=kind[1],
-                                mean=value[1],
-                                sigma=value[2],
-                                labels=kind[2].split(", "),
+                            values.append(
+                                valueModels.GaussianValue(
+                                    kind=kind[1],
+                                    mean=value[1],
+                                    sigma=value[2],
+                                    labels=kind[2].split(", "),
+                                )
                             )
-
-                    values.append(v)
 
                 result.append(
                     Metric(
@@ -200,65 +208,63 @@ class Persistence:
 
             match value.kind:
                 case "static":
-                    val = cast(valueModels.StaticValue, value)
+                    static = cast(valueModels.StaticValue, value)
                     self.cursor.execute(
                         """
                     INSERT INTO static (value, id)
                     VALUES (?, ?)
                     """,
-                        (val.value, value_id),
+                        (static.value, value_id),
                     )
 
                 case "ramp":
-                    val = cast(valueModels.RampValue, value)
+                    ramp = cast(valueModels.RampValue, value)
                     self.cursor.execute(
                         """
                     INSERT INTO ramp (period, peak, offset, invert, id)
                     VALUES (?, ?, ?, ?, ?)
                     """,
-                        (val.period, val.peak, val.offset, val.invert, value_id),
+                        (ramp.period, ramp.peak, ramp.offset, ramp.invert, value_id),
                     )
 
                 case "square":
-                    val = cast(valueModels.SquareValue, value)
+                    square = cast(valueModels.SquareValue, value)
                     self.cursor.execute(
                         """
                     INSERT INTO square (period, magnitude, offset, duty_cycle, invert, id)
                     VALUES (?, ?, ?, ?, ?, ?)
                     """,
                         (
-                            val.period,
-                            val.magnitude,
-                            val.offset,
-                            val.duty_cycle * 100,
-                            val.invert,
+                            square.period,
+                            square.magnitude,
+                            square.offset,
+                            square.duty_cycle * 100,
+                            square.invert,
                             value_id,
                         ),
                     )
 
                 case "sine":
-                    val = cast(valueModels.SineValue, value)
+                    sine = cast(valueModels.SineValue, value)
                     self.cursor.execute(
                         """
                     INSERT INTO sine (period, amplitude, offset, id)
                     VALUES (?, ?, ?, ?)
                     """,
-                        (val.period, val.amplitude, val.offset, value_id),
+                        (sine.period, sine.amplitude, sine.offset, value_id),
                     )
 
                 case "gaussian":
-                    val = cast(valueModels.GaussianValue, value)
+                    gaussian = cast(valueModels.GaussianValue, value)
                     self.cursor.execute(
                         """
                     INSERT INTO gaussian (mean, sigma, id)
                     VALUES (?, ?, ?)
                     """,
-                        (val.mean, val.sigma, value_id),
+                        (gaussian.mean, gaussian.sigma, value_id),
                     )
 
     def delete_metric_value(self, metric: Metric, value: valueModels.MetricValue):
-        logging.info(f"Deleting value from database")
-
         with self._connection:
 
             id = self.get_metric_id(metric.name)
