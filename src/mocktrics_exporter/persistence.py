@@ -27,7 +27,8 @@ class Persistence:
                     (metric.name, metric.documentation, metric.unit),
                 )
                 metric_id = self.cursor.lastrowid
-                assert metric_id is not None
+                if metric_id is None:
+                    raise AttributeError
 
                 for index, label in enumerate(metric.labels):
 
@@ -173,8 +174,6 @@ class Persistence:
             """,
                 (metric.name,),
             )
-            metric_id = self.cursor.lastrowid
-            assert metric_id is not None
 
     def add_metric_value(self, value: valueModels.MetricValue, metric_id: int):
 
