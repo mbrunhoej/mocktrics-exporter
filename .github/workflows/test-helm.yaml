@@ -30,9 +30,8 @@ jobs:
     - name: helm template default values
       run: helm template mocktrics-exporter release/helm -f release/helm/values.yaml
 
-    - name: helm template test values
-      run: |
-        set -euo pipefail
-        while IFS= read -r -d '' f; do
-          helm template mocktrics-exporter release/helm -f "$f"
-        done < <(find release/helm/test -type f -print0)
+    - name: Install helm unit-unittest
+      run: $ helm plugin install https://github.com/helm-unittest/helm-unittest.git
+
+    - name: Run helm unittests
+      run: helm unittest release/helm

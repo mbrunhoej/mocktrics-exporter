@@ -1,0 +1,20 @@
+suite: test deployment
+templates:
+- deployment.yaml
+tests:
+- it: should work
+  set:
+    deployment:
+      image:
+        name: mocktrics-exporter
+        tag: latest
+        pullPolicy: Always
+  asserts:
+  - isKind:
+      of: Deployment
+  - equal:
+      path: spec.template.spec.containers[0].image
+      value: mocktrics-exporter:latest
+  - equal:
+      path: spec.template.spec.containers[0].imagePullPolicy
+      value: Always
