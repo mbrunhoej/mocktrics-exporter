@@ -3,6 +3,7 @@ import sqlite3
 from typing import cast
 
 from mocktrics_exporter import valueModels
+from mocktrics_exporter.arguments import arguments
 from mocktrics_exporter.metrics import Metric
 
 
@@ -457,4 +458,6 @@ class Persistence:
             ]
 
 
-database = Persistence("mocktrics-exporter.db")
+database = None
+if arguments.persistence_path:
+    database = Persistence(arguments.persistence_path)

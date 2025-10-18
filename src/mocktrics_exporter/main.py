@@ -29,8 +29,9 @@ def main() -> None:
             read_only=True,
         )
 
-    for database_metric in persistence.database.get_metrics():
-        dependencies.metrics_collection.add_metric(database_metric)
+    if persistence.database is not None:
+        for database_metric in persistence.database.get_metrics():
+            dependencies.metrics_collection.add_metric(database_metric)
 
     start_http_server(arguments.metrics_port)
 

@@ -1,13 +1,17 @@
-name: Test application
+name: Test python
 run-name: Unit tests
 
 on:
   push:
     branches:
     - "**"
+    paths:
+    - 'src/**'
   pull_request:
     branches:
     - "**"
+    paths:
+    - 'src/**'
   workflow_call:
     inputs: {}
     secrets: {}

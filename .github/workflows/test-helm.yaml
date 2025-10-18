@@ -1,0 +1,38 @@
+name: Test helm
+run-name: Validate helm chart
+
+on:
+  push:
+    branches:
+    - "**"
+    paths:
+    - 'release/helm/**'
+  pull_request:
+    branches:
+    - "**"
+    paths:
+    - 'release/helm/**'
+  workflow_call:
+    inputs: {}
+    secrets: {}
+
+jobs:
+
+  syntax-tests:
+
+    name: Validate helm chart value files
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out repository code
+      uses: actions/checkout@v4
+
+    - name: helm template default values
+      run: helm template mocktrics-exporter release/helm -f release/helm/values.yaml
+
+    - name: helm template testvalues
+      run: |
+        set -euo pipefail
+        while IFS= read -r -d '' f; do
+          helm template mocktrics-exporter release/helm -f "$f"
+        done < <(find release/helm/test -type f -print0)
