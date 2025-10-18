@@ -1,6 +1,6 @@
 import pytest
 
-from mocktrics_exporter import persistence, valueModels
+from mocktrics_exporter import dependencies, valueModels
 from mocktrics_exporter.metrics import Metric
 
 
@@ -15,7 +15,7 @@ from mocktrics_exporter.metrics import Metric
 )
 def test_ensure_indicies(index):
 
-    db = persistence.database
+    db = dependencies.database
     indicies = db.get_incidies()
     assert index in indicies
 
@@ -40,7 +40,7 @@ def test_ensure_indicies(index):
 )
 def test_add_and_get_metric(base_metric, labels, values):
 
-    db = persistence.database
+    db = dependencies.database
 
     base_metric.update({"labels": labels, "values": values})
     metric = Metric(**base_metric)
@@ -55,7 +55,7 @@ def test_get_metric_id(base_metric):
 
     names = ["metric1", "metric2", "metric3", "metric4", "metric5"]
 
-    db = persistence.database
+    db = dependencies.database
 
     for name in names:
         base_metric.update({"name": name})
@@ -71,7 +71,7 @@ def test_get_metric_id(base_metric):
 
 def test_delete_metric(base_metric):
 
-    db = persistence.database
+    db = dependencies.database
 
     base_metric.update(
         {"labels": ["response"], "values": [valueModels.StaticValue(value=0.0, labels=["200"])]}
@@ -85,7 +85,7 @@ def test_delete_metric(base_metric):
 
     assert len(db.get_metrics()) == 0
 
-    db = persistence.database
+    db = dependencies.database
     value = valueModels.StaticValue(value=0.0, labels=["200"])
 
     base_metric.update({"labels": ["response"], "values": [value]})
@@ -101,7 +101,7 @@ def test_delete_metric(base_metric):
 
 def test_delete_metric_value(base_metric):
 
-    db = persistence.database
+    db = dependencies.database
 
     value = valueModels.StaticValue(value=0.0, labels=["200"])
 
@@ -134,7 +134,7 @@ def test_delete_metric_value(base_metric):
 )
 def test_cleanup(base_metric, table, expected_count):
 
-    db = persistence.database
+    db = dependencies.database
 
     values = [
         valueModels.StaticValue(value=0.0, labels=["200"]),

@@ -3,7 +3,6 @@ import sqlite3
 from typing import cast
 
 from mocktrics_exporter import valueModels
-from mocktrics_exporter.arguments import arguments
 from mocktrics_exporter.metrics import Metric
 
 
@@ -303,7 +302,6 @@ class Persistence:
             name TEXT UNIQUE NOT NULL,
             documentation TEXT NOT NULL,
             unit TEXT NOT NULL
-            
         )
         """
         )
@@ -456,8 +454,3 @@ class Persistence:
         """
                 ).fetchall()
             ]
-
-
-database = None
-if arguments.persistence_path:
-    database = Persistence(arguments.persistence_path)
