@@ -118,7 +118,21 @@ def test_delete_metric_value(base_metric):
     assert len(db_metric.values) == 0
 
 
-def test_cleanup(base_metric):
+@pytest.mark.parametrize(
+    "table,  expected_count",
+    [
+        ("metrics", 1),
+        ("metric_labels", 1),
+        ("value_base", 5),
+        ("value_labels", 5),
+        ("static", 1),
+        ("ramp", 1),
+        ("square", 1),
+        ("sine", 1),
+        ("gaussian", 1),
+    ],
+)
+def test_cleanup(base_metric, table, expected_count):
 
     db = persistence.database
 
@@ -135,25 +149,9 @@ def test_cleanup(base_metric):
     db.add_metric(metric)
 
     with db._connection:
-        assert db.cursor.execute("SELECT COUNT(*) FROM metrics;").fetchone()[0] == 1
-        assert db.cursor.execute("SELECT COUNT(*) FROM metric_labels;").fetchone()[0] == 1
-        assert db.cursor.execute("SELECT COUNT(*) FROM value_base;").fetchone()[0] == 5
-        assert db.cursor.execute("SELECT COUNT(*) FROM value_labels;").fetchone()[0] == 5
-        assert db.cursor.execute("SELECT COUNT(*) FROM static;").fetchone()[0] == 1
-        assert db.cursor.execute("SELECT COUNT(*) FROM ramp;").fetchone()[0] == 1
-        assert db.cursor.execute("SELECT COUNT(*) FROM square;").fetchone()[0] == 1
-        assert db.cursor.execute("SELECT COUNT(*) FROM sine;").fetchone()[0] == 1
-        assert db.cursor.execute("SELECT COUNT(*) FROM gaussian;").fetchone()[0] == 1
+        assert db.cursor.execute(f"SELECT COUNT(*) FROM {table};").fetchone()[0] == expected_count
 
     db.delete_metric(metric)
 
     with db._connection:
-        assert db.cursor.execute("SELECT COUNT(*) FROM metrics;").fetchone()[0] == 0
-        assert db.cursor.execute("SELECT COUNT(*) FROM metric_labels;").fetchone()[0] == 0
-        assert db.cursor.execute("SELECT COUNT(*) FROM value_base;").fetchone()[0] == 0
-        assert db.cursor.execute("SELECT COUNT(*) FROM value_labels;").fetchone()[0] == 0
-        assert db.cursor.execute("SELECT COUNT(*) FROM static;").fetchone()[0] == 0
-        assert db.cursor.execute("SELECT COUNT(*) FROM ramp;").fetchone()[0] == 0
-        assert db.cursor.execute("SELECT COUNT(*) FROM square;").fetchone()[0] == 0
-        assert db.cursor.execute("SELECT COUNT(*) FROM sine;").fetchone()[0] == 0
-        assert db.cursor.execute("SELECT COUNT(*) FROM gaussian;").fetchone()[0] == 0
+        assert db.cursor.execute(f"SELECT COUNT(*) FROM {table};").fetchone()[0] == 0
