@@ -30,7 +30,7 @@ jobs:
     - name: helm template default values
       run: helm template mocktrics-exporter release/helm -f release/helm/values.yaml
 
-    - name: helm template testvalues
+    - name: helm template test values
       run: |
         set -euo pipefail
         while IFS= read -r -d '' f; do
