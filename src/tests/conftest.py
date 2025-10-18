@@ -1,11 +1,13 @@
 import os
 import tempfile
+import typing
 
 import pytest
 from prometheus_client import CollectorRegistry
 
 import mocktrics_exporter
 import mocktrics_exporter.dependencies
+from mocktrics_exporter.persistence import Persistence
 
 
 @pytest.fixture(autouse=True, scope="function")
@@ -23,23 +25,25 @@ def clear_metrics(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(mocktrics_exporter.dependencies.metrics_collection, "_metrics", [])
 
 
-@pytest.fixture(autouse=True, scope="function")
-def database_temp(monkeypatch: pytest.MonkeyPatch):
-
+@pytest.fixture
+def database(monkeypatch: pytest.MonkeyPatch) -> typing.Generator[Persistence, None, None]:
     with tempfile.NamedTemporaryFile(delete=False) as tmp:
-        db_path = tmp.name
+        path = tmp.name
+
+    db = Persistence(path)
+
     monkeypatch.setattr(
-        mocktrics_exporter.persistence,
+        mocktrics_exporter.dependencies,
         "database",
-        mocktrics_exporter.persistence.Persistence(db_path),
+        db,
     )
-    yield
-    if os.path.exists(db_path):
-        os.remove(db_path)
+    yield db
+    if os.path.exists(path):
+        os.remove(path)
 
 
 @pytest.fixture
-def base_metric():
+def base_metric() -> dict:
     return {
         "name": "metric",
         "values": [],

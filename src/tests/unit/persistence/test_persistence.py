@@ -1,6 +1,6 @@
 import pytest
 
-from mocktrics_exporter import dependencies, valueModels
+from mocktrics_exporter import valueModels
 from mocktrics_exporter.metrics import Metric
 
 
@@ -13,10 +13,9 @@ from mocktrics_exporter.metrics import Metric
         "idx_value_labels_value_id",
     ],
 )
-def test_ensure_indicies(index):
+def test_ensure_indicies(index, database):
 
-    db = dependencies.database
-    indicies = db.get_incidies()
+    indicies = database.get_incidies()
     assert index in indicies
 
 
@@ -38,83 +37,62 @@ def test_ensure_indicies(index):
         ),
     ],
 )
-def test_add_and_get_metric(base_metric, labels, values):
-
-    db = dependencies.database
+def test_add_and_get_metric(base_metric, labels, values, database):
 
     base_metric.update({"labels": labels, "values": values})
     metric = Metric(**base_metric)
-    db.add_metric(metric)
+    database.add_metric(metric)
 
-    metrics = db.get_metrics()
+    metrics = database.get_metrics()
     assert len(metrics) == 1
     assert metric == metrics[0]
 
 
-def test_get_metric_id(base_metric):
+def test_get_metric_id(base_metric, database):
 
     names = ["metric1", "metric2", "metric3", "metric4", "metric5"]
-
-    db = dependencies.database
 
     for name in names:
         base_metric.update({"name": name})
         metric = Metric(**base_metric)
 
-        db.add_metric(metric)
+        database.add_metric(metric)
 
     for index, name in enumerate(names, start=1):
 
-        id = db.get_metric_id(name)
+        id = database.get_metric_id(name)
         assert index == id
 
 
-def test_delete_metric(base_metric):
-
-    db = dependencies.database
+def test_delete_metric(base_metric, database):
 
     base_metric.update(
         {"labels": ["response"], "values": [valueModels.StaticValue(value=0.0, labels=["200"])]}
     )
     metric = Metric(**base_metric)
-    db.add_metric(metric)
+    database.add_metric(metric)
 
-    assert len(db.get_metrics()) == 1
+    assert len(database.get_metrics()) == 1
 
-    db.delete_metric(metric)
+    database.delete_metric(metric)
 
-    assert len(db.get_metrics()) == 0
-
-    db = dependencies.database
-    value = valueModels.StaticValue(value=0.0, labels=["200"])
-
-    base_metric.update({"labels": ["response"], "values": [value]})
-    metric = Metric(**base_metric)
-    db.add_metric(metric)
-
-    db.delete_metric_value(metric, value)
-
-    db_metric = db.get_metrics()[0]
-
-    assert len(db_metric.values) == 0
+    assert len(database.get_metrics()) == 0
 
 
-def test_delete_metric_value(base_metric):
-
-    db = dependencies.database
+def test_delete_metric_value(base_metric, database):
 
     value = valueModels.StaticValue(value=0.0, labels=["200"])
 
     base_metric.update({"labels": ["response"], "values": [value]})
     metric = Metric(**base_metric)
-    db.add_metric(metric)
+    database.add_metric(metric)
 
-    db_metric = db.get_metrics()[0]
+    db_metric = database.get_metrics()[0]
     assert len(db_metric.values) == 1
 
-    db.delete_metric_value(metric, value)
+    database.delete_metric_value(metric, value)
 
-    db_metric = db.get_metrics()[0]
+    db_metric = database.get_metrics()[0]
     assert len(db_metric.values) == 0
 
 
@@ -132,9 +110,7 @@ def test_delete_metric_value(base_metric):
         ("gaussian", 1),
     ],
 )
-def test_cleanup(base_metric, table, expected_count):
-
-    db = dependencies.database
+def test_cleanup(base_metric, table, expected_count, database):
 
     values = [
         valueModels.StaticValue(value=0.0, labels=["200"]),
@@ -146,12 +122,15 @@ def test_cleanup(base_metric, table, expected_count):
 
     base_metric.update({"labels": ["response"], "values": values})
     metric = Metric(**base_metric)
-    db.add_metric(metric)
+    database.add_metric(metric)
 
-    with db._connection:
-        assert db.cursor.execute(f"SELECT COUNT(*) FROM {table};").fetchone()[0] == expected_count
+    with database._connection:
+        assert (
+            database.cursor.execute(f"SELECT COUNT(*) FROM {table};").fetchone()[0]
+            == expected_count
+        )
 
-    db.delete_metric(metric)
+    database.delete_metric(metric)
 
-    with db._connection:
-        assert db.cursor.execute(f"SELECT COUNT(*) FROM {table};").fetchone()[0] == 0
+    with database._connection:
+        assert database.cursor.execute(f"SELECT COUNT(*) FROM {table};").fetchone()[0] == 0
