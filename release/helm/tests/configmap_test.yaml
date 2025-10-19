@@ -1,12 +1,12 @@
-suite: test persistence
+suite: test configMap
 templates:
 - deployment.yaml
-- persistentVolumeClaim.yaml
+- configMap.yaml
 tests:
 
-- it: mounts persistence volume when enabled
+- it: mounts configMap volume when enabled
   set:
-    persistence:
+    configMap:
       enabled: true
   template: deployment.yaml
   asserts:
@@ -14,57 +14,52 @@ tests:
       of: Deployment
   - equal:
       path: spec.template.spec.containers[0].args[0]
-      value: --persistence_path
+      value: --config-file
   - equal:
       path: spec.template.spec.containers[0].args[1]
-      value: /opt/mocktrics-exporter/storage.db
+      value: /opt/mocktrics-exporter/config.yaml
   - equal:
       path: spec.template.spec.containers[0].volumeMounts[0].name
-      value: database
+      value: config
   - equal:
       path: spec.template.spec.volumes[0].name
-      value: database
+      value: config
 
-- it: skips pvc manifest when persistence disabled
-  template: persistentVolumeClaim.yaml
+- it: skips configMap manifest when configMap disabled
+  template: configMap.yaml
   asserts:
   - hasDocuments:
       count: 0
 
-- it: renders pvc manifest when persistence enabled
+- it: renders configMap manifest when configMap enabled
   set:
-    persistence:
+    configMap:
       enabled: true
-  template: persistentVolumeClaim.yaml
+  template: configMap.yaml
   asserts:
   - hasDocuments:
       count: 1
 
-- it: applies pvc overrides when configured
+- it: applies configMap overrides when configured
   set:
-    persistence:
+    configMap:
       enabled: true
-      size: 1Gi
-      accessModes:
-      - ReadWriteOnce
       annotations:
         test1: "1"
         test2: "2"
       labels:
         test3: "3"
         test4: "4"
-      storageClass: nginx
-  template: persistentVolumeClaim.yaml
+      config:
+        test5: "5"
+        test6: "6"
+  template: configMap.yaml
   asserts:
   - equal:
-      path: spec.storageClassName
-      value: nginx
-  - equal:
-      path: spec.resources.requests.storage
-      value: 1Gi
-  - equal:
-      path: spec.accessModes[0]
-      value: ReadWriteOnce
+      path: data.config
+      value:
+        test5: "5"
+        test6: "6"
   - equal:
       path: metadata.annotations["test1"]
       value: "1"

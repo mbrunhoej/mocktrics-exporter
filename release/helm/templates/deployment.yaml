@@ -41,8 +41,10 @@ spec:
         - --persistence_path
         - /opt/mocktrics-exporter/storage.db
         {{- end }}
+        {{- if .Values.configMap.enabled }}
         - --config-file
         - /opt/mocktrics-exporter/config.yaml
+        {{- end }}
         ports:
         - name: http-api
           containerPort: 8080
@@ -83,9 +85,11 @@ spec:
         - name: database
           mountPath: /opt/mocktrics-exporter/
         {{- end }}
+        {{- if .Values.configMap.enabled }}
         - name: config
           mountPath: /opt/mocktrics-exporter/config.yaml
           subPath: config
+        {{- end }}  
         resources:
         {{- toYaml .Values.deployment.resources | nindent 10 }}
         securityContext:
@@ -103,6 +107,8 @@ spec:
         persistentVolumeClaim:
           claimName: {{ .Release.Name }}
       {{- end }}
+      {{- if .Values.configMap.enabled }}
       - name: config
         configMap:
           name: {{ .Release.Name }}
+      {{- end }}

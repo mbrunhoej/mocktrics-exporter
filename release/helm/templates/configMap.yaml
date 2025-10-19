@@ -1,12 +1,21 @@
+{{- if .Values.configMap.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
   namespace: {{ .Release.Namespace }}
   name: {{ .Release.Name }}
+  annotations:
+    {{- if .Values.configMap.annotations }}
+    {{- toYaml .Values.configMap.annotations | nindent 4 }}
+    {{- end }}
   labels:
     app.kubernetes.io/name: mocktrics-exporter
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    {{- if .Values.configMap.labels }}
+    {{- toYaml .Values.configMap.labels | nindent 4 }}
+    {{- end }}
 data:
-  config: |-
-    {{- toYaml .Values.config | nindent 4 }}
+  config:
+    {{- toYaml .Values.configMap.config | nindent 4 }}
+{{- end }}

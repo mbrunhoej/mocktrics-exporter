@@ -1,0 +1,35 @@
+suite: test service
+templates:
+- service.yaml
+tests:
+
+- it: applies service overrides
+  set:
+    service:
+      annotations:
+        test1: "1"
+        test2: "2"
+      labels:
+        test3: "3"
+        test4: "4"
+      apiPort: 808
+      metricsPort: 800
+  asserts:
+  - equal:
+      path: metadata.annotations["test1"]
+      value: "1"
+  - equal:
+      path: metadata.annotations["test2"]
+      value: "2"
+  - equal:
+      path: metadata.labels["test3"]
+      value: "3"
+  - equal:
+      path: metadata.labels["test4"]
+      value: "4"
+  - equal:
+      path: spec.ports[0].port
+      value: 808
+  - equal:
+      path: spec.ports[1].port
+      value: 800

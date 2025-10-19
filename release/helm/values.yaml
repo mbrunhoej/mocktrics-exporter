@@ -1,5 +1,8 @@
-config: |
-
+configMap:
+  enabled: false
+  annotations: {}
+  labels: {}
+  config: {}
 
 deployment:
 
@@ -43,7 +46,6 @@ deployment:
     successThreshold: 1
 
   tolerations: []
-
   nodeSelector: {}
 
 persistence:
@@ -54,3 +56,16 @@ persistence:
   size: 1Gi
   accessModes:
   - ReadWriteOnce
+
+service:
+  annotations: {}
+  labels: {}
+  apiPort: 8080
+  metricsPort: 8000
+
+serviceMonitor:
+  enabled: true
+  annotations: {}
+  labels: {}
+  interval: 30s
+  scrapeTimeout: 10s
