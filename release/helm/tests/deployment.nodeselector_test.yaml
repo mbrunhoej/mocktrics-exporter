@@ -1,0 +1,24 @@
+suite: test deployment.tolerations
+templates:
+- deployment.yaml
+tests:
+
+- it: should work
+  set:
+    deployment:
+      nodeSelector:
+        select: node
+  asserts:
+  - isKind:
+      of: Deployment
+  - equal:
+      path: spec.template.spec.nodeSelector
+      value:
+        select: node
+
+- it: should work
+  asserts:
+  - isKind:
+      of: Deployment
+  - isNull:
+      path: spec.template.spec.nodeSelector

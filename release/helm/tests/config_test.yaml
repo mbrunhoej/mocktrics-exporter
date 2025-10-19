@@ -1,0 +1,25 @@
+suite: test config
+templates:
+- configMap.yaml
+tests:
+
+- it: should work
+  asserts:
+  - isKind:
+      of: ConfigMap
+  - equal:
+      path: data.config
+      value: '""'
+- it: should work
+  set:
+    config:
+      test1: "1"
+      test2: 2
+  asserts:
+  - isKind:
+      of: ConfigMap
+  - equal:
+      path: data.config
+      value: |-
+        test1: "1"
+        test2: 2

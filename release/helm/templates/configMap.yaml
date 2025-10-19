@@ -8,5 +8,5 @@ metadata:
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/version: {{ .Chart.AppVersion }}
 data:
-  config: |
+  config: |-
     {{- toYaml .Values.config | nindent 4 }}

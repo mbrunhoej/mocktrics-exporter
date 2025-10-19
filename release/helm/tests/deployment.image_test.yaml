@@ -1,7 +1,16 @@
-suite: test deployment
+suite: test deployment.image
 templates:
 - deployment.yaml
 tests:
+### image
+- it: should work
+  set:
+  asserts:
+  - isKind:
+      of: Deployment
+  - equal:
+      path: spec.template.spec.containers[0].image
+      value: ghcr.io/mbrunhoej/mocktrics-exporter:0.0.0
 - it: should work
   set:
     deployment:

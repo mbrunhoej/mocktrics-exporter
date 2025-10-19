@@ -19,13 +19,13 @@ spec:
         app.kubernetes.io/name: mocktrics-exporter
         app.kubernetes.io/instance: {{ .Release.Name }}
         app.kubernetes.io/version: {{ .Chart.AppVersion }}
-        {{- range $label := .Values.deployment.podLabels }}
-        {{toYaml $label | nindent 8 }}
+        {{- if .Values.deployment.podLabels }}
+        {{- toYaml .Values.deployment.podLabels | nindent 8}}
         {{- end }}
       annotations:
-        checksum/config: {{ include (print $.Template.BasePath "/configMap.yaml") . | sha256sum }}
-        {{- range $annotation := .Values.deployment.podAnnotations }}
-        {{toYaml $annotation | nindent 8 }}
+        checksum/config: {{ toYaml .Values.config | sha256sum }}
+        {{- if .Values.deployment.podAnnotations }}
+        {{- toYaml .Values.deployment.podAnnotations | nindent 8}}
         {{- end }}
     spec:
       {{- if .Values.deployment.nodeSelector }}
@@ -37,12 +37,12 @@ spec:
         image: {{ .Values.deployment.image.name }}:{{ default .Chart.AppVersion .Values.deployment.image.tag }}
         imagePullPolicy: {{ .Values.deployment.image.pullPolicy }}
         args:
-        - --config-file
-        - /opt/mocktrics-exporter/config.yaml
         {{- if .Values.persistence.enabled }}
         - --persistence_path
         - /opt/mocktrics-exporter/storage.db
         {{- end }}
+        - --config-file
+        - /opt/mocktrics-exporter/config.yaml
         ports:
         - name: http-api
           containerPort: 8080
@@ -79,15 +79,15 @@ spec:
         {{- end }}
         {{- end }}
         volumeMounts:
-        - name: config
-          mountPath: /opt/mocktrics-exporter/config.yaml
-          subPath: config
         {{- if .Values.persistence.enabled }}
         - name: database
           mountPath: /opt/mocktrics-exporter/
         {{- end }}
+        - name: config
+          mountPath: /opt/mocktrics-exporter/config.yaml
+          subPath: config
         resources:
-          {{- toYaml .Values.deployment.resources | nindent 10 }}
+        {{- toYaml .Values.deployment.resources | nindent 10 }}
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
@@ -98,11 +98,11 @@ spec:
       {{- toYaml .Values.deployment.tolerations | nindent 8 }}
       {{- end }}
       volumes:
-      - name: config
-        configMap:
-          name: {{ .Release.Name }}
       {{- if .Values.persistence.enabled }}
       - name: database
         persistentVolumeClaim:
           claimName: {{ .Release.Name }}
       {{- end }}
+      - name: config
+        configMap:
+          name: {{ .Release.Name }}

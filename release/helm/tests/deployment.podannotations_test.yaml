@@ -1,0 +1,20 @@
+suite: test deployment.podAnnotations
+templates:
+- deployment.yaml
+tests:
+### image
+- it: should work
+  set:
+    deployment:
+      podAnnotations:
+        test.label1: "1"
+        test.label2: "2"
+  asserts:
+  - isKind:
+      of: Deployment
+  - equal:
+      path: spec.template.metadata.annotations["test.label1"]
+      value: "1"
+  - equal:
+      path: spec.template.metadata.annotations["test.label2"]
+      value: "2"

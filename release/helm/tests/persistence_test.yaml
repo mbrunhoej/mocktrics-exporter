@@ -1,0 +1,96 @@
+suite: test persistence
+templates:
+- deployment.yaml
+- persistentVolumeClaim.yaml
+tests:
+
+- it: should work
+  template: deployment.yaml
+  asserts:
+  - isKind:
+      of: Deployment
+  - equal:
+      path: spec.template.spec.containers[0].args[0]
+      value: --config-file
+  - equal:
+      path: spec.template.spec.containers[0].args[1]
+      value: /opt/mocktrics-exporter/config.yaml
+  - equal:
+      path: spec.template.spec.containers[0].volumeMounts[0].name
+      value: config
+  - equal:
+      path: spec.template.spec.volumes[0].name
+      value: config
+
+- it: should work
+  set:
+    persistence:
+      enabled: true
+  template: deployment.yaml
+  asserts:
+  - isKind:
+      of: Deployment
+  - equal:
+      path: spec.template.spec.containers[0].args[0]
+      value: --persistence_path
+  - equal:
+      path: spec.template.spec.containers[0].args[1]
+      value: /opt/mocktrics-exporter/storage.db
+  - equal:
+      path: spec.template.spec.containers[0].volumeMounts[0].name
+      value: database
+  - equal:
+      path: spec.template.spec.volumes[0].name
+      value: database
+
+- it: should work
+  template: persistentVolumeClaim.yaml
+  asserts:
+  - hasDocuments:
+      count: 0
+
+- it: should work
+  set:
+    persistence:
+      enabled: true
+  template: persistentVolumeClaim.yaml
+  asserts:
+  - hasDocuments:
+      count: 1
+
+- it: should work
+  set:
+    persistence:
+      enabled: true
+      size: 1Gi
+      accessModes:
+      - ReadWriteOnce
+      annotations:
+        test1: "1"
+        test2: "2"
+      labels:
+        test3: "3"
+        test4: "4"
+  template: persistentVolumeClaim.yaml
+  asserts:
+  - equal:
+      path: spec.storageClassName
+      value:
+  - equal:
+      path: spec.resources.requests.storage
+      value: 1Gi
+  - equal:
+      path: spec.accessModes[0]
+      value: ReadWriteOnce
+  - equal:
+      path: metadata.annotations["test1"]
+      value: "1"
+  - equal:
+      path: metadata.annotations["test2"]
+      value: "2"
+  - equal:
+      path: metadata.labels["test3"]
+      value: "3"
+  - equal:
+      path: metadata.labels["test4"]
+      value: "4"

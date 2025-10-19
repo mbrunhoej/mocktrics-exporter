@@ -1,0 +1,44 @@
+suite: test deployment.readinessProbe
+templates:
+- deployment.yaml
+tests:
+
+- it: should work
+  set:
+    deployment:
+      readinessProbe:
+        enabled: true
+        path: /
+        port: 9090
+        scheme: HTTPS
+        initialDelaySeconds: 1
+        periodSeconds: 1
+        timeoutSeconds: 1
+        failureThreshold: 1
+        successThreshold: 10
+  asserts:
+  - isKind:
+      of: Deployment
+  - equal:
+      path: spec.template.spec.containers[0].readinessProbe
+      value:
+        failureThreshold: 1
+        httpGet:
+          path: /
+          port: 9090
+          scheme: HTTPS
+        initialDelaySeconds: 1
+        periodSeconds: 1
+        successThreshold: 10
+        timeoutSeconds: 1
+
+- it: should work
+  set:
+    deployment:
+      readinessProbe:
+        enabled: false
+  asserts:
+  - isKind:
+      of: Deployment
+  - isNull:
+      path: spec.template.spec.containers[0].readinessProbe

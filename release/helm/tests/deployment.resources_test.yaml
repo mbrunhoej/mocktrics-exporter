@@ -1,0 +1,38 @@
+suite: test deployment.resources
+templates:
+- deployment.yaml
+tests:
+
+- it: should work
+  set:
+    deployment:
+      resources:
+        requests:
+          cpu: 1m
+          memory: 1Mi
+        limits:
+          cpu: 1m
+          memory: 1Mi
+  asserts:
+  - isKind:
+      of: Deployment
+  - equal:
+      path: spec.template.spec.containers[0].resources
+      value:
+        requests:
+          cpu: 1m
+          memory: 1Mi
+        limits:
+          cpu: 1m
+          memory: 1Mi
+
+- it: should work
+  set:
+    deployment:
+      resources:
+  asserts:
+  - isKind:
+      of: Deployment
+  - equal:
+      path: spec.template.spec.containers[0].resources
+      value:
