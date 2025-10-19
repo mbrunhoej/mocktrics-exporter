@@ -3,7 +3,7 @@ templates:
 - deployment.yaml
 tests:
 
-- it: should work
+- it: applies tolerations when provided
   set:
     deployment:
       tolerations:
@@ -22,7 +22,7 @@ tests:
         value: "value"
         effect: "NoSchedule"
 
-- it: should work
+- it: omits tolerations by default
   asserts:
   - isKind:
       of: Deployment

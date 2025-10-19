@@ -5,15 +5,15 @@ metadata:
   name: {{ .Release.Name }}
   namespace: {{ .Release.Namespace }}
   annotations:
-  {{- range $annotation := .Values.persistence.annotations }}
-  {{toYaml $annotation | nindent 4 }}
-  {{- end }}
+    {{- if .Values.persistence.annotations }}
+    {{- toYaml .Values.persistence.annotations | nindent 4}}
+    {{- end }}
   labels:
     app.kubernetes.io/name: mocktrics-exporter
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/version: {{ .Chart.AppVersion }}
-    {{- range $label := .Values.persistence.labels }}
-    {{toYaml $label | nindent 4 }}
+    {{- if .Values.persistence.labels }}
+    {{- toYaml .Values.persistence.labels | nindent 4}}
     {{- end }}
 spec:
   accessModes:

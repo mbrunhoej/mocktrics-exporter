@@ -3,7 +3,7 @@ templates:
 - deployment.yaml
 tests:
 
-- it: should work
+- it: renders container resources when configured
   set:
     deployment:
       resources:
@@ -26,7 +26,7 @@ tests:
           cpu: 1m
           memory: 1Mi
 
-- it: should work
+- it: leaves container resources empty by default
   set:
     deployment:
       resources:

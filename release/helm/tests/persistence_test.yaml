@@ -4,7 +4,7 @@ templates:
 - persistentVolumeClaim.yaml
 tests:
 
-- it: should work
+- it: mounts config volume when persistence disabled
   template: deployment.yaml
   asserts:
   - isKind:
@@ -22,7 +22,7 @@ tests:
       path: spec.template.spec.volumes[0].name
       value: config
 
-- it: should work
+- it: mounts persistence volume when enabled
   set:
     persistence:
       enabled: true
@@ -43,13 +43,13 @@ tests:
       path: spec.template.spec.volumes[0].name
       value: database
 
-- it: should work
+- it: skips pvc manifest when persistence disabled
   template: persistentVolumeClaim.yaml
   asserts:
   - hasDocuments:
       count: 0
 
-- it: should work
+- it: renders pvc manifest when persistence enabled
   set:
     persistence:
       enabled: true
@@ -58,7 +58,7 @@ tests:
   - hasDocuments:
       count: 1
 
-- it: should work
+- it: applies pvc overrides when configured
   set:
     persistence:
       enabled: true
@@ -71,11 +71,12 @@ tests:
       labels:
         test3: "3"
         test4: "4"
+      storageClass: nginx
   template: persistentVolumeClaim.yaml
   asserts:
   - equal:
       path: spec.storageClassName
-      value:
+      value: nginx
   - equal:
       path: spec.resources.requests.storage
       value: 1Gi

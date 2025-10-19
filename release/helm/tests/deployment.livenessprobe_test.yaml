@@ -3,7 +3,7 @@ templates:
 - deployment.yaml
 tests:
 
-- it: should work
+- it: enables liveness probe when configured
   set:
     deployment:
       livenessProbe:
@@ -32,7 +32,7 @@ tests:
         successThreshold: 10
         timeoutSeconds: 1
 
-- it: should work
+- it: omits liveness probe when disabled
   set:
     deployment:
       livenessProbe:

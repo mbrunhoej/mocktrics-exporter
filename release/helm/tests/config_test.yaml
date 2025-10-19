@@ -3,14 +3,14 @@ templates:
 - configMap.yaml
 tests:
 
-- it: should work
+- it: renders empty config map by default
   asserts:
   - isKind:
       of: ConfigMap
   - equal:
       path: data.config
       value: '""'
-- it: should work
+- it: renders merged config map when values provided
   set:
     config:
       test1: "1"

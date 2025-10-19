@@ -3,7 +3,7 @@ templates:
 - deployment.yaml
 tests:
 
-- it: should work
+- it: applies node selector when configured
   set:
     deployment:
       nodeSelector:
@@ -16,7 +16,7 @@ tests:
       value:
         select: node
 
-- it: should work
+- it: omits node selector by default
   asserts:
   - isKind:
       of: Deployment

@@ -3,7 +3,7 @@ templates:
 - deployment.yaml
 tests:
 ### image
-- it: should work
+- it: applies custom pod labels
   set:
     deployment:
       podLabels:

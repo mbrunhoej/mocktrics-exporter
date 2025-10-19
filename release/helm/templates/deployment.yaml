@@ -15,17 +15,17 @@ spec:
       app.kubernetes.io/name: mocktrics-exporter
   template:
     metadata:
+      annotations:
+        checksum/config: {{ toYaml .Values.config | sha256sum }}
+        {{- if .Values.deployment.podAnnotations }}
+        {{- toYaml .Values.deployment.podAnnotations | nindent 8}}
+        {{- end }}
       labels:
         app.kubernetes.io/name: mocktrics-exporter
         app.kubernetes.io/instance: {{ .Release.Name }}
         app.kubernetes.io/version: {{ .Chart.AppVersion }}
         {{- if .Values.deployment.podLabels }}
         {{- toYaml .Values.deployment.podLabels | nindent 8}}
-        {{- end }}
-      annotations:
-        checksum/config: {{ toYaml .Values.config | sha256sum }}
-        {{- if .Values.deployment.podAnnotations }}
-        {{- toYaml .Values.deployment.podAnnotations | nindent 8}}
         {{- end }}
     spec:
       {{- if .Values.deployment.nodeSelector }}

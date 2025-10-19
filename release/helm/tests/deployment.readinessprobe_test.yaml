@@ -3,7 +3,7 @@ templates:
 - deployment.yaml
 tests:
 
-- it: should work
+- it: enables readiness probe when configured
   set:
     deployment:
       readinessProbe:
@@ -32,7 +32,7 @@ tests:
         successThreshold: 10
         timeoutSeconds: 1
 
-- it: should work
+- it: omits readiness probe when disabled
   set:
     deployment:
       readinessProbe:
