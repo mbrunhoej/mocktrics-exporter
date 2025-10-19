@@ -1,19 +1,29 @@
 configMap:
   enabled: false
-  annotations: {}
-  labels: {}
-  config: {}
+  annotations:
+    test1: "1"
+    test2: "2"
+  labels:
+    test1: "1"
+    test2: "2"
+  config:
+    test1: "1"
+    test2: "2"
 
 deployment:
 
   image:
     name: ghcr.io/mbrunhoej/mocktrics-exporter
     # default to Chart.appVersion
-    tag:
+    tag: 1.1.1
     pullPolicy: IfNotPresent
 
-  podLabels: {}
-  podAnnotations: {}
+  podLabels:
+    test1: "1"
+    test2: "2"
+  podAnnotations:
+    test1: "1"
+    test2: "2"
 
   resources:
     requests:
@@ -45,26 +55,41 @@ deployment:
     failureThreshold: 3
     successThreshold: 1
 
-    annotations: {}
-    labels: {}
+  tolerations:
+  - key: "key1"
+    operator: "Equal"
+    value: "value"
+    effect: "NoSchedule"
+  - key: "key2"
+    operator: "Equal"
+    value: "value"
+    effect: "NoSchedule"
 
-  tolerations: []
-  nodeSelector: {}
+  nodeSelector:
+    select: node
 
 persistence:
-  enabled: false
-  storageClass: ""
+  enabled: true
+  storageClass: nginx
   size: 1Gi
   accessModes:
   - ReadWriteOnce
-  annotations: {}
-  labels: {}
+  annotations:
+    test1: "1"
+    test2: "2"
+  labels:
+    test1: "1"
+    test2: "2"
 
 service:
   apiPort: 8080
   metricsPort: 8000
-  annotations: {}
-  labels: {}
+  annotations:
+    test1: "1"
+    test2: "2"
+  labels:
+    test1: "1"
+    test2: "2"
 
 serviceMonitor:
   enabled: true
@@ -72,3 +97,4 @@ serviceMonitor:
   scrapeTimeout: 10s
   annotations: {}
   labels: {}
+
