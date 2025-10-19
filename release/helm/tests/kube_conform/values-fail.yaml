@@ -31,6 +31,7 @@ deployment:
     limits:
       cpu: 250m
       memory: 256Mi
+      dsfsd: 9.0
 
   livenessProbe:
     enabled: true

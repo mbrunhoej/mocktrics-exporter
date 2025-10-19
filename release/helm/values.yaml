@@ -1,8 +1,8 @@
 configMap:
   enabled: false
+  config: {}
   annotations: {}
   labels: {}
-  config: {}
 
 deployment:
 
