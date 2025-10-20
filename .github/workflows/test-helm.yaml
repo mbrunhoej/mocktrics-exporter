@@ -35,7 +35,8 @@ jobs:
 
     - name: Download kube-conform
       run: |
-        wget https://github.com/yannh/kubeconform/releases/download/v0.7.0/kubeconform-linux-amd64.tar.gz &&
+        wget https://github.com/yannh/kubeconform/releases/download/v0.7.0/\
+        kubeconform-linux-amd64.tar.gz && \
         tar -xvf kubeconform-linux-amd64.tar.gz
 
     - name: Run helm unittests
@@ -43,7 +44,8 @@ jobs:
 
     - name: Run kube kube-conform on default values
       run: |
-        helm template mocktrics-exporter release/helm -f release/helm/values.yaml | ./kubeconform --ignore-missing-schemas --strict --summary
+        helm template mocktrics-exporter release/helm -f release/helm/values.yaml \
+        | ./kubeconform --ignore-missing-schemas --strict --summary
 
     - name: Run kube kube-conform on test values
       run: |-

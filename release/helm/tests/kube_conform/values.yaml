@@ -103,4 +103,3 @@ serviceMonitor:
   scrapeTimeout: 10s
   annotations: {}
   labels: {}
-
