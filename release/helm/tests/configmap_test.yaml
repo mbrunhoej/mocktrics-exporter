@@ -50,14 +50,14 @@ tests:
       labels:
         test3: "3"
         test4: "4"
-      config: |-
+      config:
         test5: "5"
         test6: "6"
   template: configMap.yaml
   asserts:
   - equal:
       path: data.config
-      value:
+      value: |-
         test5: "5"
         test6: "6"
   - equal:

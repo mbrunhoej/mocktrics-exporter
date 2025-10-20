@@ -16,6 +16,6 @@ metadata:
     {{- toYaml .Values.configMap.labels | nindent 4 }}
     {{- end }}
 data:
-  config: |
+  config: |-
     {{- toYaml .Values.configMap.config | nindent 4 }}
 {{- end }}
