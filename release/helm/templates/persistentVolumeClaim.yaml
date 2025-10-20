@@ -1,0 +1,27 @@
+{{- if .Values.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    {{- if .Values.persistence.annotations }}
+    {{- toYaml .Values.persistence.annotations | nindent 4}}
+    {{- end }}
+  labels:
+    app.kubernetes.io/name: mocktrics-exporter
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    {{- if .Values.persistence.labels }}
+    {{- toYaml .Values.persistence.labels | nindent 4}}
+    {{- end }}
+spec:
+  accessModes:
+  {{- range $mode := .Values.persistence.accessModes }}
+    - {{ $mode }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.size }} 
+  storageClassName: {{ .Values.persistence.storageClass }}
+{{- end }}

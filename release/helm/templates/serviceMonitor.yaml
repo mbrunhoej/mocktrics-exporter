@@ -1,14 +1,20 @@
+{{- if .Values.serviceMonitor.enabled }}
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: {{ .Release.Name }}
   namespace: {{ .Release.Namespace }}
+  annotations:
+    {{- if .Values.serviceMonitor.annotations }}
+    {{- toYaml .Values.serviceMonitor.annotations | nindent 4 }}
+    {{- end }}
   labels:
     app.kubernetes.io/name: mocktrics-exporter
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/version: {{ .Chart.AppVersion }}
-    app.kubernetes.io/managed-by: Helm
-    release: prometheus
+    {{- if .Values.serviceMonitor.labels }}
+    {{- toYaml .Values.serviceMonitor.labels | nindent 4 }}
+    {{- end }}
 spec:
   selector:
     matchLabels:
@@ -17,6 +23,7 @@ spec:
   endpoints:
     - port: http-metrics
       path: /metrics
-      interval: 30s
-      scrapeTimeout: 10s
+      interval: {{ .Values.serviceMonitor.interval }}
+      scrapeTimeout: {{ .Values.serviceMonitor.scrapeTimeout }}
       scheme: http
+{{- end }}

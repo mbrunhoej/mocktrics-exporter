@@ -1,0 +1,20 @@
+suite: test deployment.podLabels
+templates:
+- deployment.yaml
+tests:
+### image
+- it: applies custom pod labels
+  set:
+    deployment:
+      podLabels:
+        test.label1: "1"
+        test.label2: "2"
+  asserts:
+  - isKind:
+      of: Deployment
+  - equal:
+      path: spec.template.metadata.labels["test.label1"]
+      value: "1"
+  - equal:
+      path: spec.template.metadata.labels["test.label2"]
+      value: "2"

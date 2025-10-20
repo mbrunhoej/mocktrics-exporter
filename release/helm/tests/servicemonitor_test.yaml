@@ -1,0 +1,48 @@
+suite: test serviceMonitor
+templates:
+- serviceMonitor.yaml
+tests:
+
+- it: renders serviceMonitor manifest when enabled
+  asserts:
+  - hasDocuments:
+      count: 1
+
+- it: renders not serviceMonitor manifest when disabled
+  set:
+    serviceMonitor:
+      enabled: false
+  asserts:
+  - hasDocuments:
+      count: 0
+
+- it: applies service overrides
+  set:
+    serviceMonitor:
+      annotations:
+        test1: "1"
+        test2: "2"
+      labels:
+        test3: "3"
+        test4: "4"
+      interval: 1s
+      scrapeTimeout: 2s
+  asserts:
+  - equal:
+      path: metadata.annotations["test1"]
+      value: "1"
+  - equal:
+      path: metadata.annotations["test2"]
+      value: "2"
+  - equal:
+      path: metadata.labels["test3"]
+      value: "3"
+  - equal:
+      path: metadata.labels["test4"]
+      value: "4"
+  - equal:
+      path: spec.endpoints[0].interval
+      value: 1s
+  - equal:
+      path: spec.endpoints[0].scrapeTimeout
+      value: 2s

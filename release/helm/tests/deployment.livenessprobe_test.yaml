@@ -1,0 +1,44 @@
+suite: test deployment.livenessProbe
+templates:
+- deployment.yaml
+tests:
+
+- it: enables liveness probe when configured
+  set:
+    deployment:
+      livenessProbe:
+        enabled: true
+        path: /
+        port: 9090
+        scheme: HTTPS
+        initialDelaySeconds: 1
+        periodSeconds: 1
+        timeoutSeconds: 1
+        failureThreshold: 1
+        successThreshold: 10
+  asserts:
+  - isKind:
+      of: Deployment
+  - equal:
+      path: spec.template.spec.containers[0].livenessProbe
+      value:
+        failureThreshold: 1
+        httpGet:
+          path: /
+          port: 9090
+          scheme: HTTPS
+        initialDelaySeconds: 1
+        periodSeconds: 1
+        successThreshold: 10
+        timeoutSeconds: 1
+
+- it: omits liveness probe when disabled
+  set:
+    deployment:
+      livenessProbe:
+        enabled: false
+  asserts:
+  - isKind:
+      of: Deployment
+  - isNull:
+      path: spec.template.spec.containers[0].livenessProbe

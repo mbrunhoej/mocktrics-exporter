@@ -1,0 +1,74 @@
+suite: test configMap
+templates:
+- deployment.yaml
+- configMap.yaml
+tests:
+
+- it: mounts configMap volume when enabled
+  set:
+    configMap:
+      enabled: true
+  template: deployment.yaml
+  asserts:
+  - isKind:
+      of: Deployment
+  - equal:
+      path: spec.template.spec.containers[0].args[0]
+      value: --config-file
+  - equal:
+      path: spec.template.spec.containers[0].args[1]
+      value: /opt/mocktrics-exporter/config.yaml
+  - equal:
+      path: spec.template.spec.containers[0].volumeMounts[0].name
+      value: config
+  - equal:
+      path: spec.template.spec.volumes[0].name
+      value: config
+
+- it: skips configMap manifest when configMap disabled
+  template: configMap.yaml
+  asserts:
+  - hasDocuments:
+      count: 0
+
+- it: renders configMap manifest when configMap enabled
+  set:
+    configMap:
+      enabled: true
+  template: configMap.yaml
+  asserts:
+  - hasDocuments:
+      count: 1
+
+- it: applies configMap overrides when configured
+  set:
+    configMap:
+      enabled: true
+      annotations:
+        test1: "1"
+        test2: "2"
+      labels:
+        test3: "3"
+        test4: "4"
+      config:
+        test5: "5"
+        test6: "6"
+  template: configMap.yaml
+  asserts:
+  - equal:
+      path: data.config
+      value: |-
+        test5: "5"
+        test6: "6"
+  - equal:
+      path: metadata.annotations["test1"]
+      value: "1"
+  - equal:
+      path: metadata.annotations["test2"]
+      value: "2"
+  - equal:
+      path: metadata.labels["test3"]
+      value: "3"
+  - equal:
+      path: metadata.labels["test4"]
+      value: "4"

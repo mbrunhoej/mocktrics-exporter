@@ -1,0 +1,29 @@
+suite: test deployment.image
+templates:
+- deployment.yaml
+tests:
+### image
+- it: uses default image when unspecified
+  set:
+  asserts:
+  - isKind:
+      of: Deployment
+  - equal:
+      path: spec.template.spec.containers[0].image
+      value: ghcr.io/mbrunhoej/mocktrics-exporter:0.0.0
+- it: supports overriding image settings
+  set:
+    deployment:
+      image:
+        name: mocktrics-exporter
+        tag: latest
+        pullPolicy: Always
+  asserts:
+  - isKind:
+      of: Deployment
+  - equal:
+      path: spec.template.spec.containers[0].image
+      value: mocktrics-exporter:latest
+  - equal:
+      path: spec.template.spec.containers[0].imagePullPolicy
+      value: Always

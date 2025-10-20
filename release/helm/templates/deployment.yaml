@@ -3,11 +3,17 @@ kind: Deployment
 metadata:
   name: {{ .Release.Name }}
   namespace: {{ .Release.Namespace }}
+  annotations:
+    {{- if .Values.deployment.annotations }}
+    {{- toYaml .Values.deployment.annotations | nindent 4}}
+    {{- end }}
   labels:
     app.kubernetes.io/name: mocktrics-exporter
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/version: {{ .Chart.AppVersion }}
-    app.kubernetes.io/managed-by: Helm
+    {{- if .Values.deployment.labels }}
+    {{- toYaml .Values.deployment.labels | nindent 4}}
+    {{- end }}
 spec:
   replicas: 1
   selector:
@@ -16,25 +22,36 @@ spec:
       app.kubernetes.io/name: mocktrics-exporter
   template:
     metadata:
+      annotations:
+        checksum/config: {{ toYaml .Values.config | sha256sum }}
+        {{- if .Values.deployment.podAnnotations }}
+        {{- toYaml .Values.deployment.podAnnotations | nindent 8}}
+        {{- end }}
       labels:
         app.kubernetes.io/name: mocktrics-exporter
         app.kubernetes.io/instance: {{ .Release.Name }}
         app.kubernetes.io/version: {{ .Chart.AppVersion }}
-        app.kubernetes.io/managed-by: Helm
-      annotations:
-        checksum/config: {{ include (print $.Template.BasePath "/configMap.yaml") . | sha256sum }}
+        {{- if .Values.deployment.podLabels }}
+        {{- toYaml .Values.deployment.podLabels | nindent 8}}
+        {{- end }}
     spec:
-      {{- if .Values.nodeSelector }}
+      {{- if .Values.deployment.nodeSelector }}
       nodeSelector:
-        {{- toYaml .Values.nodeSelector | nindent 8 }}
+        {{- toYaml .Values.deployment.nodeSelector | nindent 8 }}
       {{- end }}
       containers:
       - name: {{ .Release.Name }}
-        image: {{ .Values.image.name }}:{{ default .Chart.AppVersion .Values.image.tag }}
-        imagePullPolicy: IfNotPresent
+        image: {{ .Values.deployment.image.name }}:{{ default .Chart.AppVersion .Values.deployment.image.tag }}
+        imagePullPolicy: {{ .Values.deployment.image.pullPolicy }}
         args:
-        - -f
+        {{- if .Values.persistence.enabled }}
+        - --persistence_path
+        - /opt/mocktrics-exporter/storage.db
+        {{- end }}
+        {{- if .Values.configMap.enabled }}
+        - --config-file
         - /opt/mocktrics-exporter/config.yaml
+        {{- end }}
         ports:
         - name: http-api
           containerPort: 8080
@@ -42,7 +59,7 @@ spec:
         - name: http-metrics
           containerPort: 8000
           protocol: TCP
-        {{- with .Values.livenessProbe }}
+        {{- with .Values.deployment.livenessProbe }}
         {{- if .enabled }}
         livenessProbe:
           httpGet:
@@ -56,7 +73,7 @@ spec:
           successThreshold: {{ default 1 .successThreshold }}
         {{- end }}
         {{- end }}
-        {{- with .Values.readinessProbe }}
+        {{- with .Values.deployment.readinessProbe }}
         {{- if .enabled }}
         readinessProbe:
           httpGet:
@@ -71,21 +88,34 @@ spec:
         {{- end }}
         {{- end }}
         volumeMounts:
+        {{- if .Values.persistence.enabled }}
+        - name: database
+          mountPath: /opt/mocktrics-exporter/
+        {{- end }}
+        {{- if .Values.configMap.enabled }}
         - name: config
           mountPath: /opt/mocktrics-exporter/config.yaml
           subPath: config
+        {{- end }}  
         resources:
-          {{- .Values.resources | toYaml | nindent 10 }}
+        {{- toYaml .Values.deployment.resources | nindent 10 }}
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
           capabilities:
             drop: ["ALL"]
-      {{- if and (hasKey .Values "tolerations") (gt (len .Values.tolerations) 0) }}
+      {{- if and (hasKey .Values.deployment "tolerations") (gt (len .Values.deployment.tolerations) 0) }}
       tolerations:
-      {{- .Values.tolerations | toYaml | nindent 8 }}
+      {{- toYaml .Values.deployment.tolerations | nindent 8 }}
       {{- end }}
       volumes:
+      {{- if .Values.persistence.enabled }}
+      - name: database
+        persistentVolumeClaim:
+          claimName: {{ .Release.Name }}
+      {{- end }}
+      {{- if .Values.configMap.enabled }}
       - name: config
         configMap:
           name: {{ .Release.Name }}
+      {{- end }}

@@ -1,0 +1,30 @@
+suite: test deployment.tolerations
+templates:
+- deployment.yaml
+tests:
+
+- it: applies tolerations when provided
+  set:
+    deployment:
+      tolerations:
+      - key: "key"
+        operator: "Equal"
+        value: "value"
+        effect: "NoSchedule"
+  asserts:
+  - isKind:
+      of: Deployment
+  - equal:
+      path: spec.template.spec.tolerations
+      value:
+      - key: "key"
+        operator: "Equal"
+        value: "value"
+        effect: "NoSchedule"
+
+- it: omits tolerations by default
+  asserts:
+  - isKind:
+      of: Deployment
+  - isNull:
+      path: spec.template.spec.tolerations
