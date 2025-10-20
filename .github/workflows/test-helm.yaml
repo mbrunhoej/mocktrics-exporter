@@ -46,5 +46,7 @@ jobs:
         helm template mocktrics-exporter release/helm -f release/helm/values.yaml | ./kubeconform --ignore-missing-schemas --strict --summary
 
     - name: Run kube kube-conform on test values
-      run: |
-        find release/helm/tests/kube_conform -type f -print0 | xargs -0 -I{} helm template mocktrics-exporter release/helm -f {} | ./kubeconform --ignore-missing-schemas --strict --summary
+      run: |-
+        find release/helm/tests/kube_conform -type f -print0 \
+        | xargs -0 -I{} sh -c 'helm template mocktrics-exporter release/helm -f "$@"' _ {} \
+        | ./kubeconform --ignore-missing-schemas --strict --summary
