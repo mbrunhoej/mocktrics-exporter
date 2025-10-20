@@ -1,5 +1,5 @@
 configMap:
-  enabled: false
+  enabled: true
   config:
     test1: "1"
     test2: "2"
