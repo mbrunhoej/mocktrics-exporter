@@ -30,7 +30,9 @@ class MetricsCollection:
         self.update_metrics()
         logging.info(f"Adding metric: {id}: {metric}")
         if not read_only and dependencies.database is not None:
-            dependencies.database.add_metric(metric)
+            if metric.name not in [m.name for m in dependencies.database.get_metrics()]:
+                dependencies.database.add_metric(metric)
+        metric.register()
 
         return id
 
