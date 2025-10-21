@@ -176,10 +176,12 @@ def is_registered(metric: Metric):
 
 def test_register(base_metric):
     metric = Metric(**base_metric)
+    metric.register()
     assert is_registered(metric)
 
 
 def test_unregister(base_metric):
     metric = Metric(**base_metric)
+    metric.register()
     metric.unregister()
     assert not is_registered(metric)
