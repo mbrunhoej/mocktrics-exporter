@@ -35,8 +35,6 @@ class Metric:
 
         self._collector = self.Collector(self)
 
-        self.register()
-
     @staticmethod
     def validate_name(name: str):
         if len(name) < 1 or len(name) > 200:
