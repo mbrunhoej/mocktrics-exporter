@@ -160,7 +160,30 @@ class GaussianValue(pydantic.BaseModel):
         return random.gauss(self.mean, self.sigma)
 
 
+class TimeSeriesValue(pydantic.BaseModel):
+    kind: Literal["timeSeries"] = "timeSeries"
+    labels: list[str]
+    series: list[tuple[int, float]]
+    _start_time: float = pydantic.PrivateAttr(default_factory=lambda: time.monotonic())
+    _delta_time: int = pydantic.PrivateAttr(default=0)
+
+    def model_post_init(self, __context) -> None:
+        self._delta_time = self.series[-1][0] - self.series[0][0]
+
+    def get_value(self) -> float:
+        print(self._delta_time)
+        print(len(self.series))
+        delta = time.monotonic() - self._start_time
+        progress = (delta % self._delta_time) / self._delta_time
+        print(progress)
+
+        index = int(len(self.series) / progress)
+        print(index)
+
+        return self.series[index][1]
+
+
 MetricValue = Annotated[
-    Union[RampValue, SineValue, SquareValue, StaticValue, GaussianValue],
+    Union[RampValue, SineValue, SquareValue, StaticValue, GaussianValue, TimeSeriesValue],
     pydantic.Field(discriminator="kind"),
 ]
