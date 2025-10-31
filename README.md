@@ -35,6 +35,7 @@ Example Prometheus scrape config:
 - `-f, --config-file` path to YAML configuration file
 - `-a, --api-port` API port (default `8080`)
 - `-m, --metrics-port` Prometheus metrics port (default `8000`)
+- `-p, --persistence_path` Path for persistence database (disabled unless specified)
 
 Options can also be provided via environment or process managers as needed.
 
@@ -84,6 +85,12 @@ metrics:
 Helpers:
 - Duration strings: `1s`, `2m`, `3h`, `1d`
 - Size strings: `2u`, `2m`, `2k`, `2M`, `2G`
+
+## Persistence
+A new SQLite database is created automatically if persistence is enabled and the file does not exist.
+- Metrics that are created, updated, or deleted through the HTTP API are mirrored into the database. On the next process start those records are reloaded and re-registered, so your dynamic metrics survive restarts.
+- Metrics loaded from `config.yaml` remain read-only and are not written back to the database; use the API for any mutable metrics you want persisted.
+- The schema stores metric definitions, labels, and all supported value types (`static`, `ramp`, `square`, `sine`, `gaussian`) so you get the exact same behavior after a restart.
 
 ## HTTP API
 
